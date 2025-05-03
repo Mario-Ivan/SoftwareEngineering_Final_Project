@@ -1,0 +1,30 @@
+import { RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
+
+export const authenticate: RequestHandler = async (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
+    if (!token) {
+        res.status(401).send({ message: 'Access denied, no token provided.' });
+        return;
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        req.body.user = decoded;
+        next();
+    } catch (error) {
+        res.status(400).send({ message: 'Invalid token.' });
+        return;
+    }
+};
+
+
+const authorizeAdmin: RequestHandler = async (req, res, next) => {
+    if (req.body.user.role !== 'admin') {
+        res.status(403).send({ message: 'Access denied, admin only.' });
+        return;
+    }
+    next();
+};
+
