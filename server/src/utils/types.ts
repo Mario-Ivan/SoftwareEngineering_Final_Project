@@ -1,3 +1,0 @@
-/**
- * Enter your types here
- */
