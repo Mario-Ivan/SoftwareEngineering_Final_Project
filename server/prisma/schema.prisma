@@ -17,4 +17,29 @@ model User{
   email String @unique
   telepon String @unique
   profile String?
+
+  Payment Payment[]
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+  amount Float
+  firstNameCustom String
+  lastNameCustom String
+  paymentMethod String
+  paymentDate DateTime @default(now())
+  userId Int
+  paymentStatus Boolean
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Vids{
+  id Int @id @default(autoincrement())
+  name String
+  title String
+  category String
+  description String
+  filePath String
+  uploadTime DateTime @default(now())
+
 }

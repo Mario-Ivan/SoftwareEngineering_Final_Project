@@ -14,13 +14,13 @@ export const authenticate: RequestHandler = async (req, res, next) => {
         req.body.user = decoded;
         next();
     } catch (error) {
-        res.status(400).send({ message: 'Invalid token.' });
+        res.status(400).send({ message: 'Invalid token.' , error: error});
         return;
     }
 };
 
 
-const authorizeAdmin: RequestHandler = async (req, res, next) => {
+export const authorizeAdmin: RequestHandler = async (req, res, next) => {
     if (req.body.user.role !== 'admin') {
         res.status(403).send({ message: 'Access denied, admin only.' });
         return;
