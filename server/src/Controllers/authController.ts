@@ -5,18 +5,11 @@ import { RequestHandler } from 'express';
 
 const prisma = new PrismaClient();
 
-// id Int @id @default(autoincrement())
-// firstName String 
-// lastName String
-// password String 
-// email String @unique
-// telepon String @unique
-// profile String?
 
 export const register:RequestHandler = async (req, res, next) => {
     try{
-        const { firstName, lastName, password, email, telepon } = req.body;
-        if (!firstName || !lastName || !email || !password || !telepon) {
+        const { firstName, lastName, userName , password, email } = req.body;
+        if (!firstName || !lastName || !email || !userName || !password) {
             res.status(400).json({ message: 'Mohon Isi semua bagian dengan lengkap!'});
             return;
         }
@@ -32,12 +25,6 @@ export const register:RequestHandler = async (req, res, next) => {
             return;
         }
 
-        const teleponRegex = /^[0-9]+$/;
-        if (!teleponRegex.test(telepon)) {
-            res.status(400).json({ message: 'Nomor telepon hanya berisi angka!' });
-            return;
-        }
-
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             res.status(400).json({ message: 'Sudah ada akun teradaftar menggunakan email tersebut!' });
@@ -48,24 +35,23 @@ export const register:RequestHandler = async (req, res, next) => {
 
         const newUser = await prisma.user.create({
             data: {
-                email,
-                password: hashedPassword,
                 firstName,
                 lastName,
-                telepon,
+                userName,
+                email,
+                password: hashedPassword,
             },
         });
-        const token = jwt.sign({ userId: newUser.id, email: newUser.email }, process.env.JWT_SECRET!, { expiresIn: '1h' });
         res.status(201).json({
             message: 'User registered successfully',
-            token,
+            newUser,
         });
     }catch(error){
         next(error);
     }
 };
 
-export const login:RequestHandler = async (req, res,next) => {
+export const login:RequestHandler = async (req, res, next) => {
     try{
         const { email, password } = req.body;
         if (email === 'admin@gmail.com') {
