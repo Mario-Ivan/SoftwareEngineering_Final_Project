@@ -16,7 +16,7 @@ const SignUp: React.FC = () => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
-    const [isHovered, setIsHovered] = useState(false); // To track hover state
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -29,7 +29,7 @@ const SignUp: React.FC = () => {
         return () => {
         clearTimeout(timer);
         };
-    }, [alert.show, isHovered]);
+    }, [alert, alert.show, isHovered]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -73,74 +73,74 @@ const SignUp: React.FC = () => {
 
     return (
         <>
-        <Navbar message="Sudah punya akun?" buttonMessage="Login Sekarang" route='/login'></Navbar>
-        <div className="h-[calc(100vh-4rem)] overflow-hidden flex">
-            <img
-            src="src/assets/Illustrations.png"
-            alt="Signup Illustration"
-            className="max-w-full h-auto"
-            />
+            <Navbar message="Sudah punya akun?" buttonMessage="Login Sekarang" route='/'></Navbar>
+            <div className="h-[calc(100vh-4rem)] overflow-hidden flex">
+                <img
+                src="src/assets/Illustrations.png"
+                alt="Signup Illustration"
+                className="max-w-full h-auto"
+                />
 
-            <div className="w-1/2 flex flex-col justify-center px-20">
-            <h2 className="text-3xl font-semibold mb-8">Buat akun Anda</h2>
-            <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="flex gap-5">
-                <div className="flex flex-col w-full">
+                <div className="w-1/2 flex flex-col justify-center px-20">
+                <h2 className="text-3xl font-semibold mb-8">Buat akun Anda</h2>
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    <div className="flex gap-5">
+                    <div className="flex flex-col w-full">
+                        <InputField
+                        label="Nama Lengkap"
+                        placeholder="First name..."
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col w-full">
+                        <InputField
+                        label="&nbsp;" // Adds spacing to align with the first input
+                        placeholder="Last name..."
+                        value={lastName}
+                        onChange={(e) => setlastName(e.target.value)}
+                        />
+                    </div>
+                    </div>
+
                     <InputField
-                    label="Nama Lengkap"
-                    placeholder="First name..."
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    label="Username"
+                    placeholder="Username..."
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
                     />
-                </div>
-                <div className="flex flex-col w-full">
+
                     <InputField
-                    label="&nbsp;" // Adds spacing to align with the first input
-                    placeholder="Last name..."
-                    value={lastName}
-                    onChange={(e) => setlastName(e.target.value)}
+                    label="Email"
+                    placeholder="Email address"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     />
+
+                    <InputField
+                    label="Password"
+                    placeholder="Create password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    showToggle={true}
+                    onToggle={() => setShowPassword((prev) => !prev)}
+                    />
+                    <Button type="submit" onClick={() => handleSubmit} text="Buat Akun" />
+                </form>
                 </div>
-                </div>
-
-                <InputField
-                label="Username"
-                placeholder="Username..."
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                />
-
-                <InputField
-                label="Email"
-                placeholder="Email address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <InputField
-                label="Password"
-                placeholder="Create password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                showToggle={true}
-                onToggle={() => setShowPassword((prev) => !prev)}
-                />
-                <Button type="submit" onClick={() => handleSubmit} text="Buat Akun" />
-            </form>
             </div>
-        </div>
-        {alert.show && (
-            <AlertPopup
-            type={alert.type || 'success'}
-            message={alert.message}
-            onClose={() => setAlert({ ...alert, show: false })}
-            duration={3000}
-            onMouseEnter={() => setIsHovered(true)} 
-            onMouseLeave={() => setIsHovered(false)}
-            />
-        )}
+            {alert.show && (
+                <AlertPopup
+                type={alert.type || 'success'}
+                message={alert.message}
+                onClose={() => setAlert({ ...alert, show: false })}
+                duration={3000}
+                onMouseEnter={() => setIsHovered(true)} 
+                onMouseLeave={() => setIsHovered(false)}
+                />
+            )}
         </>
     );
 };

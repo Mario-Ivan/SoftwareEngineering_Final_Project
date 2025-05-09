@@ -76,13 +76,13 @@ export const login:RequestHandler = async (req, res, next) => {
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-            res.status(400).json({ message: 'Invalid credentials' });
+            res.status(400).json({ message: 'Incorrect Email or Password' });
             return;
         }
 
         const validPassword = await comparePassword(password, user.password);
         if (!validPassword) {
-            res.status(400).json({ message: 'Invalid credentials' });
+            res.status(400).json({ message: 'Incorrect Email or Password' });
             return;
         }
 

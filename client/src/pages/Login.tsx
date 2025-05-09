@@ -1,16 +1,62 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
+import axios from 'axios';
+import AlertPopup from '../components/AlertPopup';
+import Cookies from 'js-cookie';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
+    const [isHovered, setIsHovered] = useState(false); 
 
-    const handleLogin = () => {
-        console.log("Email:", email);
-        console.log("Password:", password);
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (alert.show && !isHovered) {
+        timer = setTimeout(() => {
+            setAlert({ ...alert, show: false });
+        }, 3000);
+        }
+
+        return () => {
+        clearTimeout(timer);
+        };
+    }, [alert, alert.show, isHovered]);
+
+    const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if(!email){
+            setAlert({ show: true, type: 'error', message: 'Email are required!' });
+            return;
+        }
+        if (!password) {
+            setAlert({ show: true, type: 'error', message: 'Password is required!' });
+            return;
+        }
+        console.log({ serverUrl: `http://localhost:8000`});
+        const host: string = `http://localhost:8000`;
+        axios.post(`${host}/auth/login`, {
+            email,
+            password,
+        }).then(res => {
+            
+            if (res.status === 200) {
+                setAlert({ show: true, type: 'success', message: `${res.data.message}` });
+                if (res.data.token) {
+                    Cookies.set('jwt_auth', res.data.token);
+                } else {
+                    console.error('Token is undefined');
+                    setAlert({ show: true, type: 'error', message: 'Failed to retrieve authentication token.' });
+                }
+            }
+        }).catch(e => {
+            console.log(e.response.data.message);
+            setAlert({show: true, type:'error', message: `${e.response.data.message}`});
+        });
+        return;
     };
     return (
         <>
@@ -46,10 +92,20 @@ const Login: React.FC = () => {
                     onToggle={() => setShowPassword((prev) => !prev)}
                 />
 
-                <Button type="submit" onClick={() => handleLogin} text="Login" />
+                    <Button type="submit" onClick={() => handleLogin} text="Login" />
                 </form>
             </div>
             </div>
+            {alert.show && (
+                <AlertPopup
+                type={alert.type || 'success'}
+                message={alert.message}
+                onClose={() => setAlert({ ...alert, show: false })}
+                duration={3000}
+                onMouseEnter={() => setIsHovered(true)} 
+                onMouseLeave={() => setIsHovered(false)}
+                />
+            )}
         </>
         
     );
