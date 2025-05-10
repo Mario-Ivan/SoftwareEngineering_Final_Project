@@ -5,16 +5,17 @@ import authRoutes from './routes/authRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import videoRoutes from './routes/videoRoutes';
 import contactRoutes from './routes/contactRoutes';
-
+import metricRoutes from './routes/metricRoutes';
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use('/auth', authRoutes);
-app.use('/payment', paymentRoutes);
-app.use('/vids',videoRoutes);
-app.use('/contact',contactRoutes);
+app.use('/', authRoutes);
+app.use('/', paymentRoutes);
+app.use('/',videoRoutes);
+app.use('/',contactRoutes);
+app.use('/', metricRoutes);
 
 
 const port = process.env.PORT || 3000;

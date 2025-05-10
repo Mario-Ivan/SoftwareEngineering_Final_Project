@@ -43,8 +43,8 @@ model Vids{
   category String
   description String
   filePath String
+  fileKey String
   uploadTime DateTime @default(now())
-
 }
 
 model Post{

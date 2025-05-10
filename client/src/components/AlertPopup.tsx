@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, X } from 'lucide-react';
-
+import "../index.css";
 interface AlertPopupProps {
     type: 'success' | 'error';
     message: string;

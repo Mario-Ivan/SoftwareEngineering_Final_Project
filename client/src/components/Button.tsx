@@ -1,4 +1,5 @@
 // src/components/Button.jsx
+import "../index.css";
 interface ButtonProps {
     text: string;
     onClick: () => void;

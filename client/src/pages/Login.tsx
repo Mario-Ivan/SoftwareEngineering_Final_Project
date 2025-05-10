@@ -4,7 +4,7 @@ import InputField from '../components/InputField';
 import Button from '../components/Button';
 import axios from 'axios';
 import AlertPopup from '../components/AlertPopup';
-import Cookies from 'js-cookie';
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState("");
@@ -12,7 +12,7 @@ const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
     const [isHovered, setIsHovered] = useState(false); 
-
+    const navigate = useNavigate();
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (alert.show && !isHovered) {
@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         };
     }, [alert, alert.show, isHovered]);
 
-    const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if(!email){
             setAlert({ show: true, type: 'error', message: 'Email are required!' });
@@ -36,9 +36,8 @@ const Login: React.FC = () => {
             setAlert({ show: true, type: 'error', message: 'Password is required!' });
             return;
         }
-        console.log({ serverUrl: `http://localhost:8000`});
-        const host: string = `http://localhost:8000`;
-        axios.post(`${host}/auth/login`, {
+        const host: string = import.meta.env.VITE_SERVER_URL;
+        await axios.post(`${host}/login`, {
             email,
             password,
         }).then(res => {
@@ -46,11 +45,17 @@ const Login: React.FC = () => {
             if (res.status === 200) {
                 setAlert({ show: true, type: 'success', message: `${res.data.message}` });
                 if (res.data.token) {
-                    Cookies.set('jwt_auth', res.data.token);
+                    localStorage.setItem('jwt_auth', res.data.token);
                 } else {
                     console.error('Token is undefined');
                     setAlert({ show: true, type: 'error', message: 'Failed to retrieve authentication token.' });
                 }
+            }
+            
+            if (res.data.message === 'Admin login successful') {
+                navigate('/admin');
+            }else{
+                navigate('/dashboard');
             }
         }).catch(e => {
             console.log(e.response.data.message);

@@ -1,6 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminVideos from "./pages/admin/AdminVideos";
+import AdminUser from "./pages/admin/AdminUser";
+import RouteGuard from "./utils/RouteGuard";
 
 
 
@@ -11,6 +15,30 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/admin"
+          element={
+            <RouteGuard allowedRole="admin" redirectPath="/">
+              <AdminDashboard />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/adminVideos"
+          element={
+            <RouteGuard allowedRole="admin" redirectPath="/">
+              <AdminVideos />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/adminUsers"
+          element={
+            <RouteGuard allowedRole="admin" redirectPath="/">
+              <AdminUser />
+            </RouteGuard>
+          }
+        />
       </Routes>
     </Router>
   );

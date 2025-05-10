@@ -1,6 +1,7 @@
 // components/navbar.tsx
 import { GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
+import "../index.css";
 
 interface NavbarProps {
     message: string;

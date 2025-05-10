@@ -1,5 +1,6 @@
 // src/components/InputField.jsx
 import React from "react";
+import "../index.css";
 
 interface InputFieldProps {
     label: string;

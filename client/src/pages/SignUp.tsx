@@ -4,7 +4,6 @@ import Button from '../components/Button';
 import InputField from '../components/InputField';
 import axios from 'axios';
 import AlertPopup from '../components/AlertPopup';
-import dotenv from 'dotenv';
 
 
 
@@ -51,9 +50,8 @@ const SignUp: React.FC = () => {
             setAlert({ show: true, type: 'error', message: 'Password is required!' });
             return;
         }
-        console.log({ serverUrl: `http://localhost:8000`});
-        const host: string = `http://localhost:8000`;
-        axios.post(`${host}/auth/register`, {
+        const host: string = import.meta.env.VITE_SERVER_URL
+        axios.post(`${host}/register`, {
             firstName,
             lastName,
             userName,

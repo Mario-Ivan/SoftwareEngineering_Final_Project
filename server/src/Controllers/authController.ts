@@ -56,6 +56,7 @@ export const login:RequestHandler = async (req, res, next) => {
         const { email, password } = req.body;
         if (email === 'admin@gmail.com') {
             const adminPassword = process.env.ADMIN_PASSWORD;
+            console.log(adminPassword);
             if (!adminPassword || password !== adminPassword) {
                 res.status(400).json({ message: 'Invalid admin credentials' });
                 return;
@@ -86,7 +87,7 @@ export const login:RequestHandler = async (req, res, next) => {
             return;
         }
 
-        const token = jwt.sign({ userId: user.id, email: user.email, role: 'user' }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.id, email: user.email, role: 'user' }, process.env.JWT_SECRET!, { expiresIn: '6h' });
 
         res.status(200).json({
             message: 'Login successful',
@@ -95,5 +96,32 @@ export const login:RequestHandler = async (req, res, next) => {
         return;
     }catch(error){
         next(error);
+    }
+};
+
+
+export const logout: RequestHandler = (req, res) => {
+    res.status(200).json({
+        message: 'Logout successful',
+        token: null,
+    });
+};
+
+export const validateToken: RequestHandler = (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        res.status(401).json({ message: 'Token is required' });
+        return;
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        res.status(200).json({
+            message: 'Token is valid',
+            decoded,
+        });
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid or expired token' });
+        console.log(error);
     }
 };
