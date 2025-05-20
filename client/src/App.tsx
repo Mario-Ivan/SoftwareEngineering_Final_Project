@@ -5,7 +5,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminVideos from "./pages/admin/AdminVideos";
 import AdminUser from "./pages/admin/AdminUser";
 import RouteGuard from "./utils/RouteGuard";
-
+import AdminRegister from './pages/admin/AdminRegistration';
+import Payment from "./pages/payment";
 
 
 export default function App() {
@@ -15,6 +16,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route
+          path="/payment"
+          element={
+            <RouteGuard allowedRole="user" redirectPath="/">
+              <Payment/>
+            </RouteGuard>
+          }
+        />
         <Route
           path="/admin"
           element={
@@ -36,6 +45,14 @@ export default function App() {
           element={
             <RouteGuard allowedRole="admin" redirectPath="/">
               <AdminUser />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/adminRegister"
+          element={
+            <RouteGuard allowedRole="admin" redirectPath="/">
+              <AdminRegister />
             </RouteGuard>
           }
         />

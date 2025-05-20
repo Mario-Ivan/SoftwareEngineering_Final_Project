@@ -56,13 +56,12 @@ export const login:RequestHandler = async (req, res, next) => {
         const { email, password } = req.body;
         if (email === 'admin@gmail.com') {
             const adminPassword = process.env.ADMIN_PASSWORD;
-            console.log(adminPassword);
             if (!adminPassword || password !== adminPassword) {
                 res.status(400).json({ message: 'Invalid admin credentials' });
                 return;
             }
 
-            const token = jwt.sign({ userId: 'admin', email , role: 'admin'}, process.env.JWT_SECRET!, { expiresIn: '1h' });
+            const token = jwt.sign({ userId: 'admin', email , role: 'admin'}, process.env.JWT_SECRET!, { expiresIn: '6h' });
 
             res.status(200).json({
                 message: 'Admin login successful',
@@ -87,7 +86,7 @@ export const login:RequestHandler = async (req, res, next) => {
             return;
         }
 
-        const token = jwt.sign({ userId: user.id, email: user.email, role: 'user' }, process.env.JWT_SECRET!, { expiresIn: '6h' });
+        const token = jwt.sign({ userId: user.id, email: user.email, name: user.firstName + ' ' + user.lastName, role: 'user' }, process.env.JWT_SECRET!, { expiresIn: '6h' });
 
         res.status(200).json({
             message: 'Login successful',
@@ -120,6 +119,7 @@ export const validateToken: RequestHandler = (req, res) => {
             message: 'Token is valid',
             decoded,
         });
+        return;
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
         console.log(error);

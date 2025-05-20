@@ -7,15 +7,16 @@ export const metrics: RequestHandler = async (req, res, next) => {
     try{
         const community_count = await prisma.post.count();
         const video_count = await prisma.vids.count();
-        const user_count = await prisma.user.count({
-            where: {
-                Payment: {
-                    some: {
-                    paymentStatus: true,
-                    },
-                },
-            },
-        });
+        // const user_count = await prisma.user.count({
+        //     where: {
+        //         Payment: {
+        //             some: {
+        //             paymentStatus: true,
+        //             },
+        //         },
+        //     },
+        // });
+        const user_count = await prisma.user.count();
         const unpaid_payment_count = await prisma.user.count({
             where: {
                 Payment: {

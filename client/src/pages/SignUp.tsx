@@ -4,6 +4,8 @@ import Button from '../components/Button';
 import InputField from '../components/InputField';
 import axios from 'axios';
 import AlertPopup from '../components/AlertPopup';
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -16,7 +18,7 @@ const SignUp: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
     const [isHovered, setIsHovered] = useState(false);
-
+    const navigate = useNavigate();
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (alert.show && !isHovered) {
@@ -62,6 +64,7 @@ const SignUp: React.FC = () => {
             if (res.status === 201) {
                 setAlert({ show: true, type: 'success', message: `${res.data.message}` });
             }
+            navigate('/');
         }).catch(e => {
             console.log(e.response.data.message);
             setAlert({show: true, type:'error', message: `${e.response.data.message}`});

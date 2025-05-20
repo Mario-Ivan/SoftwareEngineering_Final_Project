@@ -35,8 +35,6 @@ export const submitUserPayment: RequestHandler = async (req, res, next) => {
             data: {
             userId,
             amount: req.body.amount,
-            firstNameCustom: firstName,
-            lastNameCustom: lastName,
             paymentMethod,
             paymentDate: new Date(),
             paymentStatus: false,

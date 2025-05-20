@@ -20,19 +20,17 @@ model User{
   profile String?
 
   Payment Payment[]
-
   Post Post[]
+  comments Comment[]
 }
 
 model Payment {
   id Int @id @default(autoincrement())
   amount Float
-  firstNameCustom String
-  lastNameCustom String
   paymentMethod String
   paymentDate DateTime @default(now())
+  paymentStatus Boolean @default(false)
   userId Int
-  paymentStatus Boolean
   user User @relation(fields: [userId], references: [id])
 }
 
@@ -55,6 +53,17 @@ model Post{
   userId Int
   user User @relation(fields: [userId], references: [id])
   pictures Picture[]
+  comments Comment[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Picture {

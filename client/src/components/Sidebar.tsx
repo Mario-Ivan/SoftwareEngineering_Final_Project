@@ -13,7 +13,7 @@ const navItems: NavItem[] = [
     { label: "Community", icon: "src/assets/icons/community.png", path: "/community" },
     { label: "Daftar Video", icon: "src/assets/icons/video.png", path: "/adminVideos" },
     { label: "Kelola User", icon: "src/assets/icons/user.png", path: "/adminUsers" },
-    { label: "Data Pendaftaran", icon: "src/assets/icons/register.png", path: "/register" },
+    { label: "Data Pendaftaran", icon: "src/assets/icons/register.png", path: "/adminRegister" },
     { label: "Keluar", icon: "src/assets/icons/logout.png", path: "/" },
 ];
 

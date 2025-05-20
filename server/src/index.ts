@@ -6,6 +6,8 @@ import paymentRoutes from './routes/paymentRoutes';
 import videoRoutes from './routes/videoRoutes';
 import contactRoutes from './routes/contactRoutes';
 import metricRoutes from './routes/metricRoutes';
+import userRoutes from './routes/userRoutes';
+import registRoutes from './routes/registrationRoutes';
 dotenv.config();
 
 const app = express();
@@ -16,6 +18,8 @@ app.use('/', paymentRoutes);
 app.use('/',videoRoutes);
 app.use('/',contactRoutes);
 app.use('/', metricRoutes);
+app.use('/', userRoutes);
+app.use('/', registRoutes);
 
 
 const port = process.env.PORT || 3000;

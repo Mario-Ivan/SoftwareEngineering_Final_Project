@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 // Define the types for the props
 interface RouteGuardProps {
-  children: ReactNode;
-  allowedRole: string;
-  redirectPath: string;
+    children: ReactNode;
+    allowedRole: string;
+    redirectPath: string;
 }
 
 const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRole, redirectPath }) => {
@@ -18,9 +18,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children, allowedRole, redirect
         try {
             const payload = JSON.parse(atob(token.split(".")[1]));
             if (payload.role === allowedRole) {
-            setIsAuthenticated(true);
+                setIsAuthenticated(true);
             } else {
-            navigate(redirectPath);
+                navigate(redirectPath);
             }
         } catch (e) {
             console.log(e);

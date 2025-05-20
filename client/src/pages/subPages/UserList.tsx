@@ -3,34 +3,37 @@ import axios from "axios";
 import AlertPopup from "../../components/AlertPopup";
 import { validateToken } from "../../utils/ValidateToken";
 import { useNavigate } from "react-router-dom";
-
-type Video = {
+type User = {
     id: number;
-    title: string;
-    category: string;
-    description: string;
-    uploadTime: string;
-};
+    firstName: string;
+    lastName: string;
+    userName: string;
+    email: string;
+    password: string;
+    telepon: string;
+}
 
-const dummyData: Video[] = [];
+const usersData: User[] = [];
 
 export default function VideoList() {
-    const [videos, setVideos] = useState<Video[]>(dummyData);
+    const [users, setUsers] = useState<User[]>(usersData);
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [editingVideoId, setEditingVideoId] = useState<number | null>(null);
-    const [newVideo, setNewVideo] = useState({
-        title: '',
-        category: 'Investasi',
-        description: '',
-        file: null as File | null
+    const [editingUserId, seteditingUserId] = useState<number | null>(null);
+    const [newUser, setNewUser] = useState({
+        firstName: '',
+        lastName: '',
+        userName: '',
+        email: '',
+        password: '',
+        telepon: ''
     });
+
     const [page, setPage] = useState<number>(1);
     const limit = 10;
     const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
     const [isHovered, setIsHovered] = useState(false);
-
-    const [totalVideos, setTotalVideos] = useState<number>(0);
+    const [totalUsers, setTotalUsers] = useState<number>(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -41,11 +44,11 @@ export default function VideoList() {
             }
         };
         checkToken();
-        const fetchVideos = async () => {
+        const fetchUser = async () => {
             try {
                 const host: string = import.meta.env.VITE_SERVER_URL;
                 const token = localStorage.getItem('jwt_auth');
-                const response = await axios.post(`${host}/videos/paginate`, {
+                const response = await axios.post(`${host}/users/paginate`, {
                     page,
                     limit,
                 }, {
@@ -53,29 +56,29 @@ export default function VideoList() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                setVideos(response.data.videos);
+                setUsers(response.data.users);
             } catch (error) {
                 console.error("Error fetching videos:", error);
             }
         };
 
-        fetchVideos();
-        const fetchTotalVideos = async () => {
+        fetchUser();
+        const fetchTotalUsers = async () => {
             try {
                 const host: string = import.meta.env.VITE_SERVER_URL;
                 const token = localStorage.getItem('jwt_auth');
-                const response = await axios.get(`${host}/countVideos`, {
+                const response = await axios.get(`${host}/users/count`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                setTotalVideos(response.data.totalVideos);
+                setTotalUsers(response.data.totalUsers);
             } catch (error) {
                 console.error("Error fetching total videos:", error);
             }
         };
 
-        fetchTotalVideos();
+        fetchTotalUsers();
         
         let timer: NodeJS.Timeout;
         if (alert.show && !isHovered) {
@@ -91,36 +94,41 @@ export default function VideoList() {
     const handleSave = async () => {
         try {
             const host = import.meta.env.VITE_SERVER_URL;
-            const formData = new FormData();
-            formData.append('title', newVideo.title);
-            formData.append('category', newVideo.category);
-            formData.append('description', newVideo.description);
-            if (newVideo.file) formData.append('file', newVideo.file);
+            const formData = {
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                userName: newUser.userName,
+                password: newUser.userName,
+                email: newUser.email,
+                telepon: newUser.telepon,
+            };
             const token = localStorage.getItem('jwt_auth');
-            if (isEditing && editingVideoId !== null) {
-                await axios.put(`${host}/updateVideo/${editingVideoId}`, formData, {
+            console.log(token);
+            if (isEditing && editingUserId !== null) {
+                console.log("KONTOL1!");
+                await axios.put(`${host}/users/${editingUserId}`, formData, {
                     headers: {
-                        'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                setAlert({ show: true, type: 'success', message: 'Video updated successfully' });
+                setAlert({ show: true, type: 'success', message: 'User updated successfully' });
             } else {
-                formData.append('uploadTime', new Date().toISOString());
-                await axios.post(`${host}/upload`, formData, {
+                console.log("KONTOL2!");
+                await axios.post(`${host}/usersAdd`, formData, {
                     headers: { 
-                        'Content-Type': 'multipart/form-data',
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                setAlert({ show: true, type: 'success', message: 'Video uploaded successfully' });
+                setAlert({ show: true, type: 'success', message: 'User uploaded successfully' });
             }
 
             setShowModal(false);
             setIsEditing(false);
-            setEditingVideoId(null);
+            seteditingUserId(null);
+
+            // Refresh videos
             const refreshed = await axios.post(
-                `${host}/videos/paginate`,
+                `${host}/users/paginate`,
                 { page, limit },
                 {
                     headers: {
@@ -128,8 +136,8 @@ export default function VideoList() {
                     },
                 }
             );
-            setVideos(refreshed.data.videos);
-            return;
+            setUsers(refreshed.data.users);
+
         } catch (err) {
             console.error(err);
             setAlert({ show: true, type: 'error', message: 'Operation failed' });
@@ -139,17 +147,17 @@ export default function VideoList() {
     return (
         <div className="p-6 bg-white rounded-xl shadow-md">
             <div className="flex justify-between mb-5">
-                <h2 className="text-xl font-semibold">Daftar Video</h2>
+                <h2 className="text-xl font-semibold">Daftar Users</h2>
                 <button
                     onClick={() => {
                         setShowModal(true);
                         setIsEditing(false);
-                        setEditingVideoId(null);
-                        setNewVideo({ title: '', category: 'Investasi', description: '', file: null });
+                        seteditingUserId(null);
+                        setNewUser({ firstName: '', lastName: '', userName: '', email: '', password: '', telepon: '' });
                     }}
                     className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
                 >
-                    Tambah Video
+                    Tambah User
                 </button>
             </div>
 
@@ -163,7 +171,7 @@ export default function VideoList() {
                         try {
                             const host: string = import.meta.env.VITE_SERVER_URL;
                             const token = localStorage.getItem('jwt_auth');
-                            const response = await axios.post(`${host}/videos/paginate`, {
+                            const response = await axios.post(`${host}/users/paginate`, {
                                 page,
                                 limit,
                                 search: searchQuery,
@@ -172,12 +180,12 @@ export default function VideoList() {
                                     Authorization: `Bearer ${token}`,
                                 },
                             });
-                            setVideos(response.data.videos);
-                            const fetchTotalVideos = async () => {
+                            setUsers(response.data.users);
+                            const fetchTotalUsers = async () => {
                                 try {
                                     const host: string = import.meta.env.VITE_SERVER_URL;
                                     const token = localStorage.getItem('jwt_auth');
-                                    const response = await axios.get(`${host}/countVideos`, {
+                                    const response = await axios.get(`${host}/users/count`, {
                                         headers: {
                                             Authorization: `Bearer ${token}`,
                                         },
@@ -185,14 +193,13 @@ export default function VideoList() {
                                             search: searchQuery,
                                         }
                                     });
-                                    
-                                    setTotalVideos(response.data.totalVideos);
+                                    setTotalUsers(response.data.totalUsers);
                                 } catch (error) {
                                     console.error("Error fetching total videos:", error);
                                 }
                             };
-                            fetchTotalVideos();
-                            setTotalVideos(response.data.totalVideos);
+                            fetchTotalUsers();
+                            setTotalUsers(response.data.totalUsers);
                         } catch (error) {
                             console.error("Error searching videos:", error);
                         }
@@ -204,54 +211,56 @@ export default function VideoList() {
                 <thead>
                     <tr className="bg-gray-100 text-left">
                         <th className="p-2 border border-gray-300">NO</th>
-                        <th className="p-2 border border-gray-300">TANGGAL UNGGAH</th>
-                        <th className="p-2 border border-gray-300">JUDUL VIDEO</th>
-                        <th className="p-2 border border-gray-300">KATEGORI</th>
-                        <th className="p-2 border border-gray-300">DESKRIPSI</th>
+                        <th className="p-2 border border-gray-300">NAMA DEPAN</th>
+                        <th className="p-2 border border-gray-300">NAMA BELAKANG</th>
+                        <th className="p-2 border border-gray-300">NAMA PENGGUNA</th>
+                        <th className="p-2 border border-gray-300">EMAIL</th>
+                        <th className="p-2 border border-gray-300">TELEPON</th>
                         <th className="p-2 border border-gray-300">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {videos.map((video, index) => (
-                        <tr key={video.id} className="text-gray-700">
+                    {users.map((user, index) => (
+                        <tr key={user.id} className="text-gray-700">
                             <td className="p-2 border border-gray-300 text-center">{(index + 1) + ((page-1) * 10)}</td>
-                            <td className="p-2 border border-gray-300">
-                                {new Date(video.uploadTime).toLocaleString()}
-                            </td>
-                            <td className="p-2 border border-gray-300">{video.title}</td>
-                            <td className="p-2 border border-gray-300">{video.category}</td>
-                            <td className="p-2 border border-gray-300">{video.description}</td>
+                            <td className="p-2 border border-gray-300">{user.firstName}</td>
+                            <td className="p-2 border border-gray-300">{user.lastName}</td>
+                            <td className="p-2 border border-gray-300">{user.userName}</td>
+                            <td className="p-2 border border-gray-300">{user.email}</td>
+                            <td className="p-2 border border-gray-300">{user.telepon}</td>
                             <td className="p-2 border border-gray-300 space-x-2">
                                 <button
                                     onClick={() => {
                                         setShowModal(true);
                                         setIsEditing(true);
-                                        setEditingVideoId(video.id);
-                                        setNewVideo({
-                                            title: video.title,
-                                            category: video.category,
-                                            description: video.description,
-                                            file: null,
+                                        seteditingUserId(user.id);
+                                        setNewUser({
+                                            firstName: user.firstName,
+                                            lastName: user.lastName,
+                                            userName: user.userName,
+                                            email: user.email,
+                                            password: user.password,
+                                            telepon: user.telepon,
                                         });
                                     }}
                                 >
-                                    <img src="src/assets/icons/edit.png" alt="Delete" className="w-10 h-10 inline" />
+                                    <img src="src/assets/icons/edit.png" alt="Edit" className="w-10 h-10 inline" />
                                 </button>
                                 <button
                                     onClick={async () => {
                                         try {
                                             const host: string = import.meta.env.VITE_SERVER_URL;
                                             const token = localStorage.getItem('jwt_auth');
-                                            await axios.delete(`${host}/deleteVideo/${video.id}`, {
+                                            await axios.delete(`${host}/users/${user.id}`, {
                                                 headers: {
                                                     Authorization: `Bearer ${token}`,
                                                 },
                                             });
-                                            setVideos(prev => prev.filter(v => v.id !== video.id));
-                                            setAlert({ show: true, type: 'success', message: 'Video deleted successfully' });
+                                            setUsers(prev => prev.filter(u => u.id !== user.id));
+                                            setAlert({ show: true, type: 'success', message: 'User deleted successfully' });
                                         } catch (error) {
-                                            console.error("Error deleting video:", error);
-                                            setAlert({ show: true, type: 'error', message: 'Failed to delete video' });
+                                            console.error("Error deleting user:", error);
+                                            setAlert({ show: true, type: 'error', message: 'Failed to delete user' });
                                         }
                                     }}
                                 >
@@ -266,7 +275,7 @@ export default function VideoList() {
             <div className="flex justify-between mt-4 text-sm text-gray-600">
                 <span>
 
-                    Showing {videos.length > 0 ? (page - 1) * limit + 1 : 0} to {(page - 1) * limit + videos.length} of {totalVideos} entries
+                    Showing {users.length > 0 ? (page - 1) * limit + 1 : 0} to {(page - 1) * limit + users.length} of {totalUsers} entries
                 </span>
                 <div className="space-x-1">
                     <button
@@ -279,8 +288,8 @@ export default function VideoList() {
                     <span className="px-3 py-1 bg-indigo-500 text-white rounded">{page}</span>
                     <button
                         className="px-3 py-1 border border-gray-300 rounded text-gray-600"
-                        onClick={() => setPage((prev) => (prev * limit < totalVideos ? prev + 1 : prev))}
-                        disabled={page * limit >= totalVideos}
+                        onClick={() => setPage((prev) => (prev * limit < totalUsers ? prev + 1 : prev))}
+                        disabled={page * limit >= totalUsers}
                     >
                         Next
                     </button>
@@ -311,49 +320,62 @@ export default function VideoList() {
                             </button>
 
                             <h3 className="text-xl font-semibold mb-6 text-center">
-                                {isEditing ? 'Edit Video' : 'Tambah Video'}
+                                {isEditing ? 'Edit User' : 'Tambah User'}
                             </h3>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block font-medium mb-1">Judul Video</label>
+                                    <label className="block font-medium mb-1">Nama Depan</label>
                                     <input
                                         type="text"
                                         className="w-full border rounded px-3 py-2"
-                                        value={newVideo.title}
-                                        onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                                        value={newUser.firstName}
+                                        onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block font-medium mb-1">Kategori</label>
-                                    <select
-                                        className="w-full border rounded px-3 py-2"
-                                        value={newVideo.category}
-                                        onChange={(e) => setNewVideo({ ...newVideo, category: e.target.value })}
-                                    >
-                                        <option value="Investasi">Investasi</option>
-                                        <option value="Teknologi">Teknologi</option>
-                                        <option value="Pendidikan">Pendidikan</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Deskripsi</label>
-                                    <textarea
-                                        className="w-full border rounded px-3 py-2"
-                                        rows={3}
-                                        value={newVideo.description}
-                                        onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
-                                    ></textarea>
-                                </div>
-                                <div>
-                                    <label className="block font-medium mb-1">Unggah Video</label>
+                                    <label className="block font-medium mb-1">Nama Belakang</label>
                                     <input
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={(e) =>
-                                            setNewVideo({ ...newVideo, file: e.target.files ? e.target.files[0] : null })
-                                        }
-                                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded file:bg-white file:text-gray-700 hover:file:bg-gray-100"
+                                        type="text"
+                                        className="w-full border rounded px-3 py-2"
+                                        value={newUser.lastName}
+                                        onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Nama Pengguna</label>
+                                    <input
+                                        type="text"
+                                        className="w-full border rounded px-3 py-2"
+                                        value={newUser.userName}
+                                        onChange={(e) => setNewUser({ ...newUser, userName: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        className="w-full border rounded px-3 py-2"
+                                        value={newUser.email}
+                                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Telepon</label>
+                                    <input
+                                        type="text"
+                                        className="w-full border rounded px-3 py-2"
+                                        value={newUser.telepon}
+                                        onChange={(e) => setNewUser({ ...newUser, telepon: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-medium mb-1">Password</label>
+                                    <input
+                                        type="password"
+                                        className="w-full border rounded px-3 py-2"
+                                        value={newUser.password || ''}
+                                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                                     />
                                 </div>
                             </div>

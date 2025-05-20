@@ -5,7 +5,7 @@ import path from 'path';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import dotenv from 'dotenv';
-import { DeleteObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const prisma = new PrismaClient();
@@ -121,12 +121,28 @@ export const getPaginate: RequestHandler = async (req, res, next) => {
             return;
         }
 
-        const skip = (pageNumber - 1) * pageSize;
 
-        const videos = await prisma.vids.findMany({
-            skip,
-            take: pageSize,
-        });
+        const skip = (pageNumber - 1) * pageSize;
+        let videos;
+        if(req.body.search){
+            videos = await prisma.vids.findMany({
+                skip,
+                take: pageSize,
+                where: {
+                    OR: [
+                        { title: { contains: req.body.search, mode: 'insensitive' } },
+                        { category: { contains: req.body.search, mode: 'insensitive' } },
+                        { description: { contains: req.body.search, mode: 'insensitive' } },
+                    ],
+                },
+            });
+        }else{
+            videos = await prisma.vids.findMany({
+                skip,
+                take: pageSize,
+            });
+        }
+        
 
         const totalVideos = await prisma.vids.count();
         const totalPages = Math.ceil(totalVideos / pageSize);
@@ -144,6 +160,147 @@ export const getPaginate: RequestHandler = async (req, res, next) => {
         next(e);
     }
 }
+
+
+// Update a video
+export const updateVideo: RequestHandler[] = [
+    upload.single('file'),
+    async (req, res, next) => {
+        const { id } = req.params;
+        const { title, category, description } = req.body;
+    
+        if (!title || !category || !description) {
+            res.status(400).json({ message: 'Title, category, and description are required' });
+            return;
+        }
+    
+        const newFile = req.file as Express.MulterS3.File;
+        try {
+            const existingVideo = await prisma.vids.findUnique({
+                where: { id: parseInt(id, 10) }
+            });
+
+            if (!existingVideo) {
+                res.status(404).json({ message: 'Video not found' });
+                return;
+            }
+
+            let filePath = existingVideo.filePath;
+            let fileKey = existingVideo.fileKey;
+            let name = existingVideo.name;
+
+            if (newFile) {
+                // Delete the old file from Wasabi
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.WASABI_BUCKET!,
+                        Key: existingVideo.fileKey,
+                    }));
+                } catch (err) {
+                    console.error('Error deleting old video from S3:', err);
+                    res.status(500).json({ message: 'Error deleting old video from storage' });
+                    return;
+                }
+
+                // Set new file data
+                filePath = newFile.location;
+                fileKey = newFile.key;
+                name = newFile.originalname;
+            }
+
+            // Update database
+            const updatedVideo = await prisma.vids.update({
+                where: { id: parseInt(id, 10) },
+                data: {
+                    title,
+                    category,
+                    description,
+                    filePath,
+                    fileKey,
+                    name,
+                    uploadTime: new Date(),
+                }
+            });
+
+            res.status(200).json({ message: 'Video updated successfully', video: updatedVideo });
+
+        } catch (err) {
+            console.error('Error updating video:', err);
+            res.status(500).json({ message: 'Error updating video' });
+        }
+    }
+];
+
+// Delete a video
+export const deleteVideo:RequestHandler = async (req, res, next) => {
+    const { id } = req.params;
+    
+    try {
+        const video = await prisma.vids.findUnique({
+            where: { id: parseInt(id, 10) },
+        });
+
+        if (!video) {
+            res.status(404).json({ message: 'Video not found' });
+            return;
+        }
+        
+        const command = new GetObjectCommand({
+            Bucket: process.env.WASABI_BUCKET!,
+            Key: video.fileKey,
+        });
+
+        try {
+            await s3Client.send(command);
+            await s3Client.send(new DeleteObjectCommand({
+                Bucket: process.env.WASABI_BUCKET!,
+                Key: video.fileKey,
+            }));
+        } catch (error) {
+            console.log('Error deleting video from S3:', error);
+            res.status(500).json({ message: 'Error deleting video from storage' });
+            return;
+        }
+        
+        await prisma.vids.delete({
+            where: { id: parseInt(id, 10) },
+        });
+
+        res.status(200).json({ message: 'Video deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error deleting video' });
+        next(error);
+    }
+};
+
+export const countVideos: RequestHandler = async (req, res, next) => {
+    try {
+        const search = req.query.search;
+        let count;
+        if(search){
+            count = await prisma.vids.count(
+                {
+                    where: {
+                        OR: [
+                            { title: { contains: search as string, mode: 'insensitive' } },
+                            { category: { contains: search as string, mode: 'insensitive' } },
+                            { description: { contains: search as string, mode: 'insensitive' } },
+                        ],
+                    },
+                }
+            );
+        }else{
+            count = await prisma.vids.count();
+        }
+        
+        res.status(200).json({ totalVideos: count });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error counting videos' });
+        next(error);
+    }
+};
 
 // Get a single video by ID
 export const getVideoById:RequestHandler = async (req, res, next) => {
@@ -164,80 +321,6 @@ export const getVideoById:RequestHandler = async (req, res, next) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching video' });
-        next(error);
-    }
-};
-
-// Update a video
-export const updateVideo:RequestHandler = async (req, res, next) => {
-    const { id } = req.params;
-    const { title, category, description } = req.body;
-
-    try {
-        const video = await prisma.vids.update({
-            where: { id: parseInt(id, 10) },
-            data: { title, category, description },
-        });
-
-        res.status(200).json({ message: 'Video updated successfully', video });
-        return;
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating video' });
-        next(error);
-    }
-};
-
-// Delete a video
-export const deleteVideo:RequestHandler = async (req, res, next) => {
-    const { id } = req.params;
-
-    try {
-        const video = await prisma.vids.findUnique({
-            where: { id: parseInt(id, 10) },
-        });
-
-        if (!video) {
-            res.status(404).json({ message: 'Video not found' });
-            return;
-        }
-
-        const command = new GetObjectCommand({
-            Bucket: process.env.WASABI_BUCKET!,
-            Key: video.fileKey,
-        });
-
-        try {
-            await s3Client.send(command);
-            await s3Client.send(new DeleteObjectCommand({
-                Bucket: process.env.WASABI_BUCKET!,
-                Key: video.fileKey,
-            }));
-        } catch (error) {
-            console.error('Error deleting video from S3:', error);
-            res.status(500).json({ message: 'Error deleting video from storage' });
-            return;
-        }
-
-        await prisma.vids.delete({
-            where: { id: parseInt(id, 10) },
-        });
-
-        res.status(200).json({ message: 'Video deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting video' });
-        next(error);
-    }
-};
-
-export const countVideos: RequestHandler = async (req, res, next) => {
-    try {
-        const count = await prisma.vids.count();
-        res.status(200).json({ totalVideos: count });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error counting videos' });
         next(error);
     }
 };

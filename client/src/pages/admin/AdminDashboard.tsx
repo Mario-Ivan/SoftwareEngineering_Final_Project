@@ -1,7 +1,7 @@
 
 import { JSX } from "react";
 import { Card, CardContent } from "../../components/Card";
-import { FaTrophy, FaVideo, FaUsers, FaUserPlus } from "react-icons/fa";
+import { FaVideo, FaUsers, FaUserPlus } from "react-icons/fa";
 import Sidebar from "../../components/Sidebar";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -62,8 +62,6 @@ export default function AdminDashboard(): JSX.Element {
                     return;
                 }
             }).catch(e => {
-                // console.log(e);
-                // console.log("============================");
                 if (e.response?.data?.error?.name === "TokenExpiredError" || e.response?.data?.error?.name === "JsonWebTokenError") {
                     navigate('/');
                 } else {

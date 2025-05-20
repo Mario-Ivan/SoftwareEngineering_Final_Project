@@ -1,7 +1,7 @@
 import React, { JSX } from "react"
 import Sidebar from "../../components/Sidebar";
 import Topbar from "../../components/Topbar";
-import UserList from "../subPages/UserList";
+import RegistList from "../subPages/RegistrationList";
 
 
 export default function adminUser(): JSX.Element {
@@ -10,9 +10,9 @@ export default function adminUser(): JSX.Element {
             <Sidebar></Sidebar>
     
             <main className="flex-1 bg-gray-50 overflow-hidden">
-                <Topbar section="Daftar User"></Topbar>
+                <Topbar section="Daftar Pendaftaran"></Topbar>
                 <div className="bg-white rounded-xl shadow-md m-10">
-                    <UserList></UserList>
+                    <RegistList></RegistList>
                 </div>
     
             </main>
