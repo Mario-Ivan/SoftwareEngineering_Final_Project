@@ -7,6 +7,7 @@ import AdminUser from "./pages/admin/AdminUser";
 import RouteGuard from "./utils/RouteGuard";
 import AdminRegister from './pages/admin/AdminRegistration';
 import Payment from "./pages/payment";
+import Home from "./pages/HomePage";
 
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/home" element={<Home />} />
         <Route
           path="/payment"
           element={
