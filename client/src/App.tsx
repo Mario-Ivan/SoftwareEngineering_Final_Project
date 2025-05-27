@@ -8,6 +8,9 @@ import RouteGuard from "./utils/RouteGuard";
 import AdminRegister from './pages/admin/AdminRegistration';
 import Payment from "./pages/payment";
 import Home from "./pages/HomePage";
+import ContactSection from "./pages/Contact";
+import CommunityPage from "./pages/Community";
+import PostDetailPage from "./pages/PostDetails";
 
 
 export default function App() {
@@ -15,9 +18,12 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/contact" element={<ContactSection />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/community/:postId" element={<PostDetailPage />} />
         <Route
           path="/payment"
           element={

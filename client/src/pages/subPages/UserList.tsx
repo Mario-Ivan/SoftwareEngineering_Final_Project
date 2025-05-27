@@ -40,7 +40,7 @@ export default function VideoList() {
         const checkToken = async () => {
             const isValid = await validateToken();
             if (!isValid) {
-                navigate('/');
+                navigate('/login');
             }
         };
         checkToken();

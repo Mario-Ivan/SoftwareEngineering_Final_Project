@@ -2,19 +2,18 @@ import React from "react";
 import { Card, CardContent } from "../components/Card";
 import { Button } from "../components/Button2";
 import Navbar from "../components/Navbar";
-
+import Footer from "../components/Footer";
+import MiniNavbar from "../components/miniNavbart";
 const Home = () => {
   return (
     <div className="bg-[#121212] text-white font-sans">
 
-      <div className="bg-black text-white p-4 text-lg font-semibold">Home</div>
-
-      {/* Reused Navbar Component */}
-      <Navbar message="Welcome to Home" buttonMessage="Get Started" route={"/"} />
+      <MiniNavbar></MiniNavbar>
+      <Navbar message="Belum punya Akun?" buttonMessage="Daftar Sekarang" route={"/signup"} />
 
       {/* Hero Section */}
-      <div className="bg-white px-16 py-16 flex flex-col lg:flex-row items-center justify-between gap-10">
-        <div className="max-w-xl text-center lg:text-left">
+      <div className="bg-white flex flex-col lg:flex-row items-center justify-between gap-10">
+        <div className="max-w-xl text-center lg:text-left pl-40">
             <h1 className="text-4xl font-bold leading-tight text-black">
             Belajar dari Para <br /> Pebisnis Profesional
             </h1>
@@ -25,19 +24,19 @@ const Home = () => {
             Kontak Kami
             </Button>
         </div>
-        <div className="w-full max-w-2xl lg:self-stretch lg:rounded-none lg:overflow-hidden">
+        <div className="w-full max-w-2xl lg:self-stretch lg:rounded-none">
             <img
               src="src/assets/heroImages.png"
               alt="Hero"
-              className="w-full h-[400px] object-cover rounded-lg lg:rounded-none"
+              className="w-full h-full object-cover rounded-lg lg:rounded-none"
               style={{ objectPosition: "center" }}
             />
         </div>
     </div>
 
       {/* Why Us Section */}
-        <div className="bg-[#1A1535] text-white px-16 py-12">
-        <div className="grid grid-cols-4 gap-8">
+        <div className="bg-[#1A1535] text-white">
+        <div className="grid grid-cols-4 gap-8 pl-40 py-20">
             <div>
                 <h2 className="text-xl font-semibold mb-2">Mengapa Kami Yang Terbaik</h2>
                 <p className="text-gray-300 mb-8 max-w-lg">
@@ -45,33 +44,39 @@ const Home = () => {
                 </p>
             </div>
             <div>
-                <img src="src/assets/icons/community-icon.png" alt="Komunitas Pebisnis" className="w-10 h-10 mb-2" />
-                <h3 className="font-semibold">Komunitas Pebisnis</h3>
-                <p>Berinteraksi dengan para pengusaha</p>
+              <img src="src/assets/icons/community-icon.png" alt="Komunitas Pebisnis" className="w-20 h-20 mb-4" />
+              <h3 className="font-semibold mb-3">Komunitas Pebisnis</h3>
+              <div className="break-words max-w-[350px]">
+                <p className="mb-4">Berinteraksi dengan para pengusaha</p>
+              </div>
             </div>
             <div>
-                <img src="src/assets/icons/video-icon.png" alt="Komunitas Pebisnis" className="w-10 h-10 mb-2" />
-                <h3 className="font-semibold">Video Bisnis Premium</h3>
-                <p>Belajar langsung dari pebisnis sukses melalui video</p>
+                <img src="src/assets/icons/video-icon.png" alt="Komunitas Pebisnis" className="w-20 h-20 mb-2" />
+                <h3 className="font-semibold mb-3">Video Bisnis Premium</h3>
+                <div className="break-words max-w-[350px]">
+                  <p className="mb-4">Belajar langsung dari pebisnis sukses melalui video</p>
+                </div>
                 </div>
             <div>
-                <img src="src/assets/icons/mentoring-icon.png" alt="Komunitas Pebisnis" className="w-10 h-10 mb-2" />
-                <h3 className="font-semibold">Mentoring Ahli</h3>
-                <p>Konsultasi langsung dengan mentor bisnis</p>
+                <img src="src/assets/icons/mentoring-icon.png" alt="Komunitas Pebisnis" className="w-20 h-20 mb-2" />
+                <h3 className="font-semibold mb-3">Mentoring Ahli</h3>
+                <div className="break-words max-w-[350px]">
+                  <p className="mb-4">Konsultasi langsung dengan mentor bisnis</p>
+
+                </div>
             </div>
         </div>
         </div>
 
 
       {/* Skill Terbaru Section */}
-      <div className="bg-[#F9FBFC] text-black px-16 py-12">
+      <div className="bg-[#F9FBFC] text-black px-40 py-20">
         <h2 className="text-2xl font-bold mb-8">Skill Terbaru</h2>
         <div className="grid grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((_, idx) => (
             <Card key={idx} className="overflow-hidden">
               <div className="relative">
-                <img src="/skill-thumbnail.jpg" alt="Skill" className="w-full" />
-                <div className="absolute top-2 right-2 bg-white text-black rounded-full p-1 text-xs font-bold">▶</div>
+                <img src="/src/assets/videoTemplate.png" alt="Skill" className="w-full" />
               </div>
               <CardContent>
                 <div className="text-xs text-red-500 font-semibold mb-1">45 MENIT · 1 Minggu lalu</div>
@@ -84,55 +89,53 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Testimonial Section */}
-      <div className="bg-white text-black px-16 py-12 flex items-center gap-12">
-        <div className="max-w-md">
-          <h2 className="text-xl text-orange-600 font-bold">Apa Kata Mereka?</h2>
-          <p className="mt-4 text-gray-700">
-            Bersama kami, ribuan pebisnis telah mendapatkan ilmu, jaringan, dan peluang investasi untuk mengembangkan usaha mereka.
-          </p>
-          <Button className="mt-6 border border-orange-500 text-orange-500 hover:bg-orange-50">
-            Tuliskan penilaian Anda
-          </Button>
+      <div className="bg-[#F9FAFB] text-black flex justify-center items-center min-h-screen ">
+          <section className="bg-white px-10 py-20 rounded-lg shadow-md">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              {/* Left Section */}
+              <div className="text-center md:text-left">
+                <p className="uppercase text-sm text-gray-500 tracking-widest mb-2">Testimonial</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-orange-500 mb-4">Apa Kata Mereka?</h2>
+                <p className="text-gray-700 mb-8">
+                  Bersama kami, ribuan pebisnis telah mendapatkan ilmu, jaringan, dan peluang investasi untuk
+                  mengembangkan usaha mereka.
+                </p>
+                <div className="flex justify-center md:justify-start">
+                  <button className="flex items-center gap-3 border border-orange-400 text-orange-500 px-6 py-3 rounded-full hover:bg-orange-50 transition">
+                    Tuliskan penilaian Anda
+                    <span className="w-8 h-8 rounded-full bg-orange-400 text-white flex items-center justify-center">
+                      →
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Section */}
+              <div className="relative">
+                <div className="rounded-2xl overflow-hidden w-full max-w-sm mx-auto">
+                  <img
+                    src="src/assets/testimonial.png"
+                    alt="Sinta Sansitika"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="absolute left-60 right-0 -bottom-12 mx-auto w-[90%] bg-white shadow-xl p-6 rounded-2xl border-l-4 border-orange-400">
+                  <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+                    Saya memulai startup saya dengan modal kecil dan kesulitan mencari investor. Setelah mengikuti video
+                    kursus tentang pitching ke investor dan berpartisipasi di komunitas, saya akhirnya berhasil.
+                  </p>
+                  <p className="font-semibold text-sm text-gray-800">Sinta Sansitika</p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-        <div className="relative">
-          <img src="/testimonial.jpg" alt="Testimonial" className="w-64 rounded-lg" />
-          <div className="absolute -bottom-4 left-0 bg-white p-4 shadow rounded-lg w-full text-sm">
-            Saya memulai startup saya dengan modal kecil dan kesulitan mencari investor. Setelah mengikuti video kursus tentang pitching ke investor dan berpartisipasi di komunitas, saya akhirnya berhasil.
-            <div className="font-semibold mt-2">Sinta Sanskita</div>
-          </div>
-        </div>
-      </div>
+
+
+
 
       {/* Footer */}
-      <footer className="bg-black text-white px-16 py-12 text-sm">
-        <div className="flex justify-between mb-8">
-          <div>
-            <img src="/logo-footer.png" alt="E-tutor" className="w-24 mb-4" />
-            <p>Platform edukatif untuk pebisnis, startup founder, dan investor.</p>
-            <div className="flex gap-2 mt-4">
-              <a href="#" className="bg-gray-800 p-2 rounded">in</a>
-              <a href="#" className="bg-gray-800 p-2 rounded">ig</a>
-              <a href="#" className="bg-gray-800 p-2 rounded">yt</a>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">HUBUNGI KAMI</h4>
-            <p>Jl. Bonie Sukasari No. 98, Jakarta</p>
-            <p>support@tananetworks1.com</p>
-            <p>62 813-5266-7989</p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">NAVIGASI CEPAT</h4>
-            <p>Home</p>
-            <p>Community</p>
-            <p>Kontak</p>
-          </div>
-        </div>
-        <div className="border-t border-gray-700 pt-4 text-center">
-          © 2021 - Eduflex. Designed by Templatecookie. All rights reserved.
-        </div>
-      </footer>
+      <Footer></Footer>
     </div>
   );
 };

@@ -74,7 +74,7 @@ const SignUp: React.FC = () => {
 
     return (
         <>
-            <Navbar message="Sudah punya akun?" buttonMessage="Login Sekarang" route='/'></Navbar>
+            <Navbar message="Sudah punya akun?" buttonMessage="Login Sekarang" route='/login'></Navbar>
             <div className="h-[calc(100vh-4rem)] overflow-hidden flex">
                 <img
                 src="src/assets/Illustrations.png"
