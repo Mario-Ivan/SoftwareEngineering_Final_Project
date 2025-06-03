@@ -55,7 +55,7 @@ const Login: React.FC = () => {
             if (res.data.message === 'Admin login successful') {
                 navigate('/admin');
             }else{
-                navigate('/dashboard');
+                navigate('/');
             }
         }).catch(e => {
             console.log(e.response.data.message);

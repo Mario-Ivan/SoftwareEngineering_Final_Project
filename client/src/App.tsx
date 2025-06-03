@@ -11,6 +11,8 @@ import Home from "./pages/HomePage";
 import ContactSection from "./pages/Contact";
 import CommunityPage from "./pages/Community";
 import PostDetailPage from "./pages/PostDetails";
+import VideoLibrary from "./pages/Skills";
+import AccountSettingsPage from "./pages/Profile";
 
 
 export default function App() {
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/contact" element={<ContactSection />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/community/:postId" element={<PostDetailPage />} />
+        <Route path="/skills" element={<VideoLibrary />} />
+        <Route path="/profile" element={<AccountSettingsPage />} />
         <Route
           path="/payment"
           element={

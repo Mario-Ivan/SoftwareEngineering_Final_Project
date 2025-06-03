@@ -12,29 +12,28 @@ export const submitContact:RequestHandler = async (req,res, next) => {
     try {
         // Configure the email transporter
         const transporter = nodemailer.createTransport({
-            service: 'gmail', // Use your email provider
+            host: "live.smtp.mailtrap.io",
+            port: 587,
             auth: {
-                user: 'Evision@gmail.com', // Replace with your email
-                pass: 'your-email-password', // Replace with your email password or app password
-            },
+                user: "api",
+                pass: "0f3edc4c9b856d8f0431a6a1fa6dfc94"
+            }
         });
 
-        // Email content
-        const mailOptions = {
-            from: email,
-            to: 'Evision@gmail.com', // Replace with your personal email
-            subject: 'New Contact Submission',
+
+        const emailSend = await transporter.sendMail({
+            from: "Test User <mailtrap@demomailtrap.com>",
+            to: "sandjayawilliams16072005@gmail.com",
+            subject: "Test",
             text: `You have a new contact submission:
             Name: ${name}
             Phone: ${phone}
             Email: ${email}
             Message: ${message}`,
-        };
 
-        // Send the email
-        await transporter.sendMail(mailOptions);
+        })
 
-        res.status(200).json({ message: 'Contact submission sent successfully.' });
+        res.status(200).json({ message: `Message Sent: ${emailSend.messageId}` });
         return;
     } catch (error) {
         console.error('Error sending email:', error);

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import MiniNavbar from '../components/miniNavbart';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import axios from 'axios';
+import AlertPopup from '../components/AlertPopup';
 
 const ContactSection = () => {
     const [form, setForm] = useState({
@@ -10,6 +12,7 @@ const ContactSection = () => {
         email: '',
         message: '',
     });
+    const [isHovered, setIsHovered] = useState(false); 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,17 +22,11 @@ const ContactSection = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
-            });
-            if (res.ok) {
-                setAlert({ show: true, type: 'success', message: 'Pesan berhasil dikirim!' });
-                setForm({ name: '', phone: '', email: '', message: '' });
-            } else {
-                setAlert({ show: true, type: 'error', message: 'Gagal mengirim pesan. Silakan coba lagi.' });
-            }
+            const host: string = import.meta.env.VITE_SERVER_URL;
+
+            const res = await axios.post(`${host}/submitContact`, form);
+            
+            setAlert({ show: true, type: 'success', message: 'Message sent successfully.' });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan.';
             setAlert({ show: true, type: 'error', message: errorMessage });
@@ -90,6 +87,7 @@ const ContactSection = () => {
                             <button
                                 type="submit"
                                 className="bg-orange-500 text-white w-full py-3 rounded hover:bg-orange-600 transition"
+                                onClick={handleSubmit}
                             >
                                 Kirim Sekarang
                             </button>
@@ -108,6 +106,16 @@ const ContactSection = () => {
                     </div>
                 </div>
             </div>
+            {alert.show && (
+                    <AlertPopup
+                    type={alert.type || 'success'}
+                    message={alert.message}
+                    onClose={() => setAlert({ ...alert, show: false })}
+                    duration={3000}
+                    onMouseEnter={() => setIsHovered(true)} 
+                    onMouseLeave={() => setIsHovered(false)}
+                    />
+            )}
             <Footer />
         </>
     );
