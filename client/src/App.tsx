@@ -13,6 +13,7 @@ import CommunityPage from "./pages/Community";
 import PostDetailPage from "./pages/PostDetails";
 import VideoLibrary from "./pages/Skills";
 import AccountSettingsPage from "./pages/Profile";
+import AdminCommunity from "./pages/admin/AdminCommunity";
 
 
 export default function App() {
@@ -65,6 +66,14 @@ export default function App() {
           element={
             <RouteGuard allowedRole="admin" redirectPath="/">
               <AdminRegister />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/adminCommunity"
+          element={
+            <RouteGuard allowedRole="admin" redirectPath="/">
+              <AdminCommunity />
             </RouteGuard>
           }
         />

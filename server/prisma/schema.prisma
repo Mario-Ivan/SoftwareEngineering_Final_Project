@@ -18,10 +18,11 @@ model User{
   email String @unique
   telepon String? @unique
   profile String?
-
+  isMemberActive Boolean @default(false)
   Payment Payment[]
   Post Post[]
   comments Comment[]
+  favoriteVideos FavoriteVideo[]
 }
 
 model Payment {
@@ -29,6 +30,9 @@ model Payment {
   amount Float
   paymentMethod String
   paymentDate DateTime @default(now())
+  duration Int
+  validFrom DateTime?
+  validUntil DateTime?
   paymentStatus Boolean @default(false)
   userId Int
   user User @relation(fields: [userId], references: [id])
@@ -42,7 +46,21 @@ model Vids{
   description String
   filePath String
   fileKey String
+  fileDuration Int 
+  thumbnail String
   uploadTime DateTime @default(now())
+  favoritedBy FavoriteVideo[]
+}
+
+model FavoriteVideo {
+  id Int @id @default(autoincrement())
+  userId Int
+  videoId Int
+  user User @relation(fields: [userId], references: [id])
+  video Vids @relation(fields: [videoId], references: [id])
+  favoritedAt DateTime @default(now())
+
+  @@unique([userId, videoId])
 }
 
 model Post{
@@ -71,4 +89,4 @@ model Picture {
     url String
     postId Int
     post Post @relation(fields: [postId], references: [id])
-  }
+}

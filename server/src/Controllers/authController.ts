@@ -86,7 +86,7 @@ export const login:RequestHandler = async (req, res, next) => {
             return;
         }
 
-        const token = jwt.sign({ userId: user.id, email: user.email, name: user.firstName + ' ' + user.lastName, role: 'user' }, process.env.JWT_SECRET!, { expiresIn: '6h' });
+        const token = jwt.sign({ userId: user.id, email: user.email, name: user.firstName + ' ' + user.lastName, role: 'user', isMember: user.isMemberActive , phoneNumber: user.telepon}, process.env.JWT_SECRET!, { expiresIn: '6h' });
 
         res.status(200).json({
             message: 'Login successful',
@@ -123,5 +123,58 @@ export const validateToken: RequestHandler = (req, res) => {
     } catch (error) {
         res.status(401).json({ message: 'Invalid or expired token' });
         console.log(error);
+    }
+};
+
+
+export const validateMembership: RequestHandler = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            res.status(401).json({ message: 'Token is required' });
+            return;
+        }
+
+        const decoded: any =  jwt.verify(token, process.env.JWT_SECRET!);
+
+        if (decoded.role === 'admin') {
+            res.status(200).json({ message: 'Admin has full membership', isMember: true });
+            return;
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        // Determine membership status based on user's latest successful payment (validUntil date)
+        const latestPayment = await prisma.payment.findFirst({
+            where: {
+            userId: user.id,
+            paymentStatus: true,
+            validUntil: { not: null }
+            },
+            orderBy: { validUntil: 'desc' }
+        });
+
+        const isActive = latestPayment && latestPayment.validUntil && new Date(latestPayment.validUntil) > new Date();
+        if(!isActive){
+            res.status(403).json({
+                message: 'Membership is inactive',
+                isMember: false,
+            });
+            return;
+        }
+        user.isMemberActive = isActive;
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { isMemberActive: isActive },
+        });
+        res.status(200).json({
+            message: user.isMemberActive ? 'Membership is active' : 'Membership is inactive',
+            isMember: user.isMemberActive,
+        });
+    } catch (error) {
+        next(error);
     }
 };

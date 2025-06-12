@@ -1,9 +1,32 @@
 import { PrismaClient } from '@prisma/client';
 import { RequestHandler } from 'express';
 import dotenv from 'dotenv';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 
 const prisma = new PrismaClient();
 dotenv.config();
+
+const s3Client = new S3Client({
+    endpoint: process.env.WASABI_ENDPOINT,
+    region: process.env.WASABI_REGION,
+    credentials: {
+        accessKeyId: process.env.WASABI_KEY!,
+        secretAccessKey: process.env.WASABI_SECRET!
+    }
+});
+
+const upload = multer({
+    storage: multerS3({
+        s3: s3Client,
+        bucket: process.env.WASABI_BUCKET!,
+        acl: 'public-read',
+        contentType: multerS3.AUTO_CONTENT_TYPE,
+        key: (req, file, cb) => cb(null, `profilepics/${Date.now()}-${file.originalname}`)
+    })
+});
 
 export const getPaginateUsers: RequestHandler = async (req, res, next) => {
     try {
@@ -195,3 +218,98 @@ export const updateUser: RequestHandler = async (req, res, next) => {
         next(error);
     }
 };
+
+export const updateFromUser: RequestHandler[] = [ upload.single('file'),
+    async (req, res, next) => { 
+        const { id } = req.params;
+        const { firstName, lastName, userEmail, userPhone, userPassword, userProfilePic } = req.body;
+        const file = req.file as Express.MulterS3.File;
+        // File is now optional; no need to return error if not present
+        try {
+            const existingUser = await prisma.user.findUnique({
+                where: { id: parseInt(id, 10) }
+            });
+
+            if (!existingUser) {
+                res.status(404).json({ message: 'User not found' });
+                return;
+            }
+            if (userEmail && userEmail !== existingUser.email) {
+                const emailUsed = await prisma.user.findUnique({
+                    where: { email: userEmail },
+                });
+                if (emailUsed) {
+                    res.status(400).json({ message: 'Email is already used by another user' });
+                    return;
+                }
+            }
+
+            const updatedUser = await prisma.user.update({
+                where: { id: parseInt(id, 10) },
+                data: {
+                    firstName: firstName ?? existingUser.firstName,
+                    lastName: lastName ?? existingUser.lastName,
+                    email: userEmail ?? existingUser.email,
+                    telepon: userPhone ?? existingUser.telepon,
+                    password: userPassword ?? existingUser.password,
+                    ...(file && { profile: file.key}),
+                },
+            });
+
+            res.status(200).json({ message: 'User updated successfully', user: updatedUser });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error updating user' });
+            next(error);
+        }
+    }
+];
+
+export const getProfilePic: RequestHandler = async(req, res, next) => {
+    const {id} = req.params;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(id, 10) },
+        });
+
+        if (!user || !user.profile) {
+            res.status(404).json({ message: 'Profile picture not found' });
+            return;
+        }
+        const key = user.profile;
+        const command = new GetObjectCommand({
+            Bucket: process.env.WASABI_BUCKET!,
+            Key: key,
+        });
+
+        const url = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7 }); 
+
+        res.status(200).json({ url });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching profile picture' });
+        next(error);
+    }
+}
+
+
+export const getUserInfo: RequestHandler = async(req, res, next) => {
+    const { id } = req.params;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(id, 10) },
+        });
+
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        res.status(200).json({ user });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching user info' });
+        next(error);
+    }
+}

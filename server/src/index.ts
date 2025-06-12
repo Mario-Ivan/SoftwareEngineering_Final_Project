@@ -8,6 +8,7 @@ import contactRoutes from './routes/contactRoutes';
 import metricRoutes from './routes/metricRoutes';
 import userRoutes from './routes/userRoutes';
 import registRoutes from './routes/registrationRoutes';
+import { communityRouter } from './routes/communityRoutes';
 dotenv.config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use('/',contactRoutes);
 app.use('/', metricRoutes);
 app.use('/', userRoutes);
 app.use('/', registRoutes);
+app.use('/', communityRouter)
 
 
 const port = process.env.PORT || 3000;

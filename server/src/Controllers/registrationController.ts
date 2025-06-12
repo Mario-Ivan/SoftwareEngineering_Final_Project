@@ -19,46 +19,58 @@ export const getPaginatePayment: RequestHandler = async (req, res, next) => {
         let users;
         if (req.body.search) {
             users = await prisma.user.findMany({
-            skip,
-            take: pageSize,
-            where: {
-                OR: [
-                { firstName: { contains: req.body.search, mode: 'insensitive' } },
-                { lastName: { contains: req.body.search, mode: 'insensitive' } },
-                { email: { contains: req.body.search, mode: 'insensitive' } },
-                { telepon: { contains: req.body.search, mode: 'insensitive' } },
-                ],
-            },
-            include: {
-                Payment: true,
-            },
+                skip,
+                take: pageSize,
+                where: {
+                    OR: [
+                        { firstName: { contains: req.body.search, mode: 'insensitive' } },
+                        { lastName: { contains: req.body.search, mode: 'insensitive' } },
+                        { email: { contains: req.body.search, mode: 'insensitive' } },
+                        { telepon: { contains: req.body.search, mode: 'insensitive' } },
+                    ],
+                },
+                include: {
+                    Payment: {
+                        orderBy: {
+                            paymentDate: 'desc'
+                        }
+                    },
+                },
             });
         } else {
             users = await prisma.user.findMany({
-            skip,
-            take: pageSize,
-            include: {
-                Payment: true,
-            },
+                skip,
+                take: pageSize,
+                include: {
+                    Payment: {
+                        orderBy: {
+                            paymentDate: 'desc'
+                        }
+                    },
+                },
             });
         }
 
 
-        const result = users.map(user => {
-            const hasPayment = user.Payment.length > 0;
-            const paymentStatus = hasPayment ? user.Payment[0].paymentStatus : null;
-            const paymentId = hasPayment ? user.Payment[0].id : null;
+        const result = users
+            .map(user => {
+                if (user.Payment.length > 0) {
+                    console.log("Tolol");
+                    return {
+                        id: user.id,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        email: user.email,
+                        telepon: user.telepon,
+                        paymentStatus: user.Payment[0].paymentStatus,
+                        paymentId: user.Payment[0].id
+                    };
+                }
+                return undefined;
+            })
+            .filter((user) => user !== undefined);
 
-            return {
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                telepon: user.telepon,
-                paymentStatus,
-                paymentId
-            };
-        });
+        console.log(result);
 
         res.status(200).json(result);
     } catch (e) {
@@ -91,13 +103,21 @@ export const updatePaymentStatus: RequestHandler = async (req, res, next) => {
             res.status(400).json({ message: 'Payment status is already true' });
             return;
         }
+        const duration = existingPayment.duration;
+
+        const now = new Date();
+        const validUntil = new Date(now);
+        validUntil.setMonth(validUntil.getMonth() + duration);
 
         const payment = await prisma.payment.update({
             where: { id: Number(paymentId) },
             data: {
                 paymentStatus: true,
+                validFrom: now,
+                validUntil: validUntil
             },
         });
+        
 
         res.status(200).json({ 
             message: 'Payment status updated successfully', 

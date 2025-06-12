@@ -64,7 +64,7 @@ const SignUp: React.FC = () => {
             if (res.status === 201) {
                 setAlert({ show: true, type: 'success', message: `${res.data.message}` });
             }
-            navigate('/');
+            navigate('/login');
         }).catch(e => {
             console.log(e.response.data.message);
             setAlert({show: true, type:'error', message: `${e.response.data.message}`});

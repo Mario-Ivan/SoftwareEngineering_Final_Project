@@ -1,10 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent } from "../components/Card";
 import { Button } from "../components/Button2";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import MiniNavbar from "../components/miniNavbart";
+import { useNavigate } from "react-router-dom";
+import { validateToken } from "../utils/ValidateToken";
 const Home = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const checkToken = async () => {
+        const isValid = await validateToken();
+        if (!isValid) {
+            localStorage.removeItem("jwt_auth");
+            localStorage.removeItem("refreshToken");
+            navigate('/login');
+        }
+    };
+    checkToken();
+  },[navigate]);
   return (
     <div className="bg-[#121212] text-white font-sans">
 

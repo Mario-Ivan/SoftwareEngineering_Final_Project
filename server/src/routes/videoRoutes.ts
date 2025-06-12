@@ -9,6 +9,10 @@ deleteVideo,
 countVideos,
 getPaginate,
 getVideoUrl,
+getThumbnailUrl,
+isFavorite,
+getMyFavorites,
+toggleFavorite
 } from '../Controllers/videoController';
 import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
 
@@ -16,12 +20,17 @@ const router = express.Router();
 
 
 router.post('/upload',authorizeAdmin, uploadVideo);
-router.get("/:id/url",authorizeAdmin,  getVideoUrl);
-router.get('/videos', authenticate, getAllVideos);
-router.post('/videos/paginate',authorizeAdmin, getPaginate);
+router.get("/videos/:id/url",  getVideoUrl);
+router.get('/videos', getAllVideos);
+router.post('/videos/paginate', getPaginate);
 router.get('/getVideo/:id', getVideoById);
 router.put('/updateVideo/:id',authorizeAdmin, updateVideo);
 router.delete('/deleteVideo/:id', authorizeAdmin, deleteVideo);
 router.get('/countVideos', authorizeAdmin,countVideos);
+router.post('/thumbnail-url', getThumbnailUrl);
+
+router.post('/favorite', toggleFavorite);
+router.post('/isFavorite/:videoId/:userId', isFavorite);
+router.post('/myFavorites/:userId', getMyFavorites);
 
 export default router;

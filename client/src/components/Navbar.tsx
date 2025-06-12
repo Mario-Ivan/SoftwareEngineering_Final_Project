@@ -1,8 +1,11 @@
 // components/navbar.tsx
 import { GraduationCap } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../index.css";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { validateToken } from "../utils/ValidateToken";
+import { validateMembership } from "../utils/ValidateMembership";
 
 interface NavbarProps {
     message: string;
@@ -13,8 +16,19 @@ const Navbar: React.FC<NavbarProps & { route: string }> = ({ message, buttonMess
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [profilePic, setProfilePic] = useState<string | null>(null);
     const [userName, setUserName] = useState<string | null>("");
+    const [userId, setUserId] = useState<string | null>("");
+    const navigate = useNavigate();
     useEffect(() => {
         // Replace with real authentication/profile fetching logic
+        const checkToken = async () => {
+            const isValid = await validateToken();
+            if (!isValid) {
+                localStorage.removeItem("jwt_auth");
+                localStorage.removeItem("refreshToken");
+                navigate('/login');
+            }
+        };
+        checkToken();
         const token = localStorage.getItem("jwt_auth");
         let user: any = null;
         if (token) {
@@ -25,17 +39,25 @@ const Navbar: React.FC<NavbarProps & { route: string }> = ({ message, buttonMess
                 user = null;
             }
         }
-        console.log(user);
-        if (user && user.name ) setUserName(user.name);
-        console.log(user);
-        if (user) {
-            setIsLoggedIn(true);
-            console.log("User authentication success");
-            setProfilePic(user.profilePic || null);
-        } else {
-            console.log("User authentication false");
-            setIsLoggedIn(false);
-            setProfilePic(null);
+        if (user && user.name ){
+            setUserName(user.name);
+            if (user) {
+                setIsLoggedIn(true);
+                setProfilePic(user.profilePic || null);
+            } else {
+                setIsLoggedIn(false);
+                setProfilePic(null);
+            }
+            const host = import.meta.env.VITE_SERVER_URL;
+            axios.get(`${host}/users/${user.userId}/profile-pic`)
+                .then(res => {
+                    if (res.data && res.data.url) {
+                        setProfilePic(res.data.url);
+                    }
+                })
+                .catch(() => {
+                    setProfilePic('');
+                });
         }
     }, []);
 

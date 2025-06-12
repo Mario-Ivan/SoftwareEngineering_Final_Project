@@ -3,6 +3,7 @@ import axios from "axios";
 import AlertPopup from "../../components/AlertPopup";
 import { validateToken } from "../../utils/ValidateToken";
 import { useNavigate } from "react-router-dom";
+import { validateMembership } from "../../utils/ValidateMembership";
 
 type Video = {
     id: number;
@@ -98,6 +99,7 @@ export default function VideoList() {
             if (newVideo.file) formData.append('file', newVideo.file);
             const token = localStorage.getItem('jwt_auth');
             if (isEditing && editingVideoId !== null) {
+                setAlert({ show: true, type: 'success', message: 'Updating video...', });
                 await axios.put(`${host}/updateVideo/${editingVideoId}`, formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
@@ -107,6 +109,7 @@ export default function VideoList() {
                 setAlert({ show: true, type: 'success', message: 'Video updated successfully' });
             } else {
                 formData.append('uploadTime', new Date().toISOString());
+                setAlert({ show: true, type: 'success', message: 'Uploading video...', });
                 await axios.post(`${host}/upload`, formData, {
                     headers: { 
                         'Content-Type': 'multipart/form-data',

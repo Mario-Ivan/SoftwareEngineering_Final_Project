@@ -10,7 +10,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { label: "Dashboard", icon: "src/assets/icons/dashboard.png", path: "/admin" },
-    { label: "Community", icon: "src/assets/icons/community.png", path: "/community" },
+    { label: "Community", icon: "src/assets/icons/community.png", path: "/adminCommunity" },
     { label: "Daftar Video", icon: "src/assets/icons/video.png", path: "/adminVideos" },
     { label: "Kelola User", icon: "src/assets/icons/user.png", path: "/adminUsers" },
     { label: "Data Pendaftaran", icon: "src/assets/icons/register.png", path: "/adminRegister" },

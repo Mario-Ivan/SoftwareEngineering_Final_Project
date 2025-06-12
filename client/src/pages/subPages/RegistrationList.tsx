@@ -3,6 +3,7 @@ import axios from "axios";
 import AlertPopup from "../../components/AlertPopup";
 import { useNavigate } from "react-router-dom";
 import { validateToken } from "../../utils/ValidateToken";
+import { validateMembership } from "../../utils/ValidateMembership";
 
 type Payment = {
     id: number;
@@ -47,8 +48,23 @@ export default function VideoList() {
                         Authorization: `Bearer ${token}`,
                     },
                 });
+                console.log(response);
                 const res = response.data;
-                setPayments(res);
+                if (Array.isArray(res)) {
+                    setPayments(
+                        res.map((payment: Payment) => ({
+                            id: payment.id,
+                            firstName: payment.firstName,
+                            lastName: payment.lastName,
+                            email: payment.email,
+                            telepon: payment.telepon,
+                            paymentId: payment.paymentId ?? null,
+                            paymentStatus: payment.paymentStatus ?? false,
+                        }))
+                    );
+                } else {
+                    setPayments([]);
+                }
             } catch (error) {
                 console.error("Error fetching videos:", error);
             }

@@ -3,6 +3,7 @@ import axios from "axios";
 import AlertPopup from "../../components/AlertPopup";
 import { validateToken } from "../../utils/ValidateToken";
 import { useNavigate } from "react-router-dom";
+import { validateMembership } from "../../utils/ValidateMembership";
 type User = {
     id: number;
     firstName: string;

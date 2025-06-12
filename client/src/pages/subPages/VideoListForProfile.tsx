@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import MiniNavbar from '../components/miniNavbart';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { useEffect } from 'react';
 import axios from 'axios';
-import AlertPopup from '../components/AlertPopup';
-import { validateToken } from '../utils/ValidateToken';
-import { validateMembership } from '../utils/ValidateMembership';
+import AlertPopup from '../../components/AlertPopup';
+import { validateToken } from '../../utils/ValidateToken';
+import { validateMembership } from '../../utils/ValidateMembership';
 import { useNavigate } from 'react-router-dom';
 
 // const videos = Array.from({ length: 30 }, (_, index) => ({
@@ -45,7 +42,7 @@ interface videoList{
 
 
 
-export default function VideoLibrary() {
+export default function VideoFavoritLibrary() {
     const VIDEOS_PER_PAGE = 8;
     const [search, setSearch] = useState<string>('');
     const [SelectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -69,15 +66,15 @@ export default function VideoLibrary() {
             if (!isValid) {
                 navigate('/login');
             }
-            const isMember = await validateMembership();
-            if(!isMember) navigate('/payment');
+            // const isMember = await validateMembership();
+            // if(!isMember) navigate('/payment');
         };
         checkToken();
         const payload = JSON.parse(atob(token.split('.')[1]));
         setuserId(payload.userId);
         setLoading(true);
         const host: string = import.meta.env.VITE_SERVER_URL;
-        axios.post(`${host}/videos/paginate`, { page: page, limit: 10, search })
+        axios.post(`${host}/videos/paginate`, { page: page, limit: 10, search, userId: userId, onlyFavorite: true })
             .then((res) => {
                 setTotalVideos(res.data.totalVideos);
                 const dataVideo:videoList[] = res.data.videos.map(async (video: videoRequestDto, index: number) => {
@@ -148,12 +145,7 @@ export default function VideoLibrary() {
     
     return (
         <>
-            <MiniNavbar />
-            <Navbar message="Belum punya Akun?" buttonMessage="Daftar Sekarang" route={"/signup"} />
             <div className="min-h-screen bg-white">
-            <div className="bg-[#2E2F5B] py-6 px-8">
-                <h1 className="text-white text-3xl font-bold text-center">Video</h1>
-            </div>
 
             <div className="max-w-6xl mx-auto p-6">
                 <div className="mb-6 relative">
@@ -317,7 +309,6 @@ export default function VideoLibrary() {
                 </div>
             </div>
             </div>
-            <Footer />
             {SelectedVideo && (
                 <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
                     <div className="relative">

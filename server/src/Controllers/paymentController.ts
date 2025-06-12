@@ -5,39 +5,31 @@ const prisma = new PrismaClient();
     
 export const submitUserPayment: RequestHandler = async (req, res, next) => {
     try{
-        const { userId, firstName, lastName, email, phoneNumber, paymentMethod } = req.body;
+        const { userId, paymentMethod, duration } = req.body;
         if (!userId) {
             res.status(400).json({ error: 'User ID is required' });
             return;
         }
-        if (!firstName) {
-            res.status(400).json({ error: 'First name is required' });
-            return;
-        }
-        if (!lastName) {
-            res.status(400).json({ error: 'Last name is required' });
-            return;
-        }
-        if (!email) {
-            res.status(400).json({ error: 'Email is required' });
-            return;
-        }
-        if (!phoneNumber) {
-            res.status(400).json({ error: 'Phone number is required' });
-            return;
-        }
+        
         if (!paymentMethod) {
             res.status(400).json({ error: 'Payment method is required' });
             return;
         }
+        
+        if(!duration){
+            res.status(400).json({error: 'duration is required'});
+            return;
+        }
+
+        const amount = duration * 100000;
 
         const payment = await prisma.payment.create({
             data: {
-            userId,
-            amount: req.body.amount,
-            paymentMethod,
-            paymentDate: new Date(),
-            paymentStatus: false,
+                userId,
+                amount,
+                paymentMethod,
+                duration,
+                paymentStatus: false,
             },
         });
 

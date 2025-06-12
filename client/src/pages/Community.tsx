@@ -2,71 +2,30 @@ import { useState } from 'react';
 import PostCard from '../components/PostCard';
 import MiniNavbar from '../components/miniNavbart';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
+import AlertPopup from '../components/AlertPopup';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { validateToken } from '../utils/ValidateToken';
+import { validateMembership } from '../utils/ValidateMembership';
 
-// Updated posts data: 'time' is ISO datetime string
-const posts = [
-    {
-        id: 1,
-        name: 'Marlina',
-        avatar: 'https://i.pravatar.cc/100?u=marlina',
-        time: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-        content: 'Bagaimana strategi terbaik untuk menarik investor di tahun 2025?',
-        commentCount: 9
-    },
-    {
-        id: 2,
-        name: 'Kyle Fisher',
-        avatar: 'https://i.pravatar.cc/100?u=kyle',
-        time: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-        content: 'Berapa modal ideal untuk memulai startup di bidang teknologi?',
-        images: [
-            'https://picsum.photos/seed/picsum/200/300?random=1'
-        ],
-        commentCount: 3
-    },
-    {
-        id: 3,
-        name: 'Arief Pratama',
-        avatar: 'https://i.pravatar.cc/100?u=arief',
-        time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),  // 2 hours ago
-        content: 'Saya sedang mengembangkan aplikasi mobile dengan React Native. Ada saran untuk backend terbaik?',
-        commentCount: 7
-    },
-    {
-        id: 4,
-        name: 'Dewi Ayu',
-        avatar: 'https://i.pravatar.cc/100?u=dewi',
-        time: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),  // 3 hours ago
-        content: 'Tips manajemen waktu untuk mahasiswa yang juga sedang magang?',
-        images: [
-            'https://picsum.photos/seed/picsum/200/300?random=2'
-        ],
-        commentCount: 4
-    },
-    {
-        id: 5,
-        name: 'Samantha Lee',
-        avatar: 'https://i.pravatar.cc/100?u=samantha',
-        time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),  // 1 day ago
-        content: 'Check out my new UI/UX design for a fintech app!',
-        images: [
-            'https://picsum.photos/seed/picsum/200/300?random=3',
-            'https://picsum.photos/seed/picsum/200/300?random=4'
-        ],
-        commentCount: 6
-    },
-    {
-        id: 6,
-        name: 'Budi Santoso',
-        avatar: 'https://i.pravatar.cc/100?u=budi',
-        time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        content: 'Bagaimana pendapat kalian soal AI dan masa depan pekerjaan?',
-        images: [
-            'https://picsum.photos/seed/picsum/200/300?random=5'
-        ],
-        commentCount: 12
-    }
-];
+
+interface Post {
+    id: number;
+    name: string;
+    avatar: string;
+    time: string;
+    userId: number;
+    content: string;
+    images?: string[];
+    commentCount: number;
+}
+
+interface CommunityPageProps {
+    isAdmin?: boolean;
+}
+
+
 
 // Optional: helper to format date for display (e.g., "1 jam yang lalu" style)
 const formatTime = (isoString: string) => {
@@ -84,11 +43,47 @@ const formatTime = (isoString: string) => {
     return `${diffDays} hari yang lalu`;
 };
 
-const CommunityPage = () => {
+
+const CommunityPage = ({isAdmin} : CommunityPageProps) => {
     const [postText, setPostText] = useState('');
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [previewImages, setPreviewImages] = useState<string[]>([]);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
+    const [isHovered, setIsHovered] = useState(false); 
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [userId, setuserId] = useState<number>(0);
+    const navigate = useNavigate();
+    
+    const handleDeletePost = (postId: number) => {
+        setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+        setAlert({ show: true, type: 'success', message: 'Post deleted successfully.' });
+    };
+
+
+    const fetchPosts = async () => {
+        try {
+            const host: string = import.meta.env.VITE_SERVER_URL;
+            const response = await axios.get(`${host}/posts`);
+            console.log(response);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const mappedPosts = response.data.signedPosts.map((item: any) => ({
+            id: item.id,
+                name: item.user?.userName || 'Unknown',
+                avatar: item.user?.profile || '',
+                time: item.createdAt,
+                userId: item.userId,
+                content: item.content,
+                images: item.pictures || [],
+                commentCount: item._count?.comments ?? 0,
+            }));
+            setPosts(mappedPosts);
+            
+        } catch (error) {
+            console.error('Failed to fetch posts:', error);
+            setAlert({ show: true, type: 'error', message: 'Failed to fetch post ' });
+        }
+    };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -102,18 +97,58 @@ const CommunityPage = () => {
         setPreviewImages(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handlePostSubmit = () => {
+    const handlePostSubmit = async () => {
         if (postText.trim() === '') return;
-
-        console.log('Posting:', {
-            postText,
-            images: imageFiles
-        });
-
+        const token = localStorage.getItem('jwt_auth');
+            if(!token) return;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userId = payload.userId;
+            console.log(userId);
+            const host: string = import.meta.env.VITE_SERVER_URL
+            await axios.post(`${host}/posts`, (() => {
+                const formData = new FormData();
+                formData.append('title', '');
+                formData.append('content', postText);
+                formData.append('userId', isAdmin ? 888 : userId);
+                imageFiles.forEach(file => formData.append('pictures', file));
+                return formData;
+            })(), {
+                headers: {
+                'Content-Type': 'multipart/form-data'
+                }
+            })
+            .then(() => {
+                setAlert({ show: true, type: 'success', message: 'Post created successfully.' });
+                fetchPosts();
+            })
+            .catch(err => {
+                console.log(err)
+                setAlert({ show: true, type: 'error', message: 'Failed to create post ' });
+            });
         setPostText('');
         setImageFiles([]);
         setPreviewImages([]);
     };
+    useEffect(() => {
+        const checkToken = async () => {
+            const isValid = await validateToken();
+            if (!isValid) {
+                navigate('/login');
+            }
+            if(!isAdmin){
+                const isMember = await validateMembership();
+                if(!isMember) navigate('/payment');
+            }
+            
+        };
+        checkToken();
+        const token = localStorage.getItem('jwt_auth');
+        if(!token) return;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setuserId(payload.userId);
+        fetchPosts();
+        
+    }, [navigate]);
     const toggleSortOrder = () => {
         setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'));
     };
@@ -166,29 +201,30 @@ const CommunityPage = () => {
                             </button>
                         </div>
 
-                        {/* Image previews */}
                         {previewImages.length > 0 && (
                             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                {previewImages.map((src, idx) => (
-                                    <div key={idx} className="relative group">
-                                        <img
-                                            src={src}
-                                            alt={`preview-${idx}`}
-                                            className="rounded max-h-40 object-cover w-full"
-                                        />
-                                        <button
-                                            onClick={() => handleDeleteImage(idx)}
-                                            className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full p-2 text-xs opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                                            title="Hapus Gambar"
-                                            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        >
-                                            ❌
-                                        </button>
-                                    </div>
-                                ))}
+                                {previewImages.map((src, idx) => {
+                                    console.log('Preview image src:', src);
+                                    return (
+                                        <div key={idx} className="relative group">
+                                            <img
+                                                src={src}
+                                                alt={`preview-${idx}`}
+                                                className="rounded max-h-40 object-cover w-full"
+                                            />
+                                            <button
+                                                onClick={() => handleDeleteImage(idx)}
+                                                className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full p-2 text-xs opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                                                title="Hapus Gambar"
+                                                style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            >
+                                                ❌
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
-
                     </div>
                     <div className="mb-6 flex justify-end">
                         <button
@@ -200,11 +236,30 @@ const CommunityPage = () => {
                     </div>
 
                     {/* Posts sorted by datetime descending */}
-                    {sortedPosts.map((post) => (
-                        <PostCard key={post.id} {...post} time={formatTime(post.time)} />
-                    ))}
+                    {sortedPosts.map((post) => {
+                        console.log(userId)
+                        return (
+                            <PostCard
+                                key={post.id}
+                                {...post}
+                                time={formatTime(post.time)}
+                                canDelete={Number(post.userId) === Number(userId) || isAdmin}
+                                onDelete={handleDeletePost}
+                            />
+                        );
+                    })}
                 </div>
             </div>
+            {alert.show && (
+                    <AlertPopup
+                    type={alert.type || 'success'}
+                    message={alert.message}
+                    onClose={() => setAlert({ ...alert, show: false })}
+                    duration={3000}
+                    onMouseEnter={() => setIsHovered(true)} 
+                    onMouseLeave={() => setIsHovered(false)}
+                    />
+            )}
         </>
     );
 };
