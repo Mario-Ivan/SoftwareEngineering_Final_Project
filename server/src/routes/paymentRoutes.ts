@@ -6,6 +6,6 @@ const router = express.Router();
 router.post('/submit', authenticate, submitUserPayment);
 router.get('/pending', authenticate, authorizeAdmin, getAllPending);
 router.post('/verify/:id', authenticate, authorizeAdmin, verifyPaymentById);
-router.get('/history/:userId', authenticate, getUserPaymentHistory);
+router.get('/history/:userId', getUserPaymentHistory);
 
 export default router;

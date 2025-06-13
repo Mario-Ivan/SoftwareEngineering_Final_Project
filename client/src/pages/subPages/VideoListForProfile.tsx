@@ -219,7 +219,11 @@ export default function VideoFavoritLibrary() {
                     </div>
                     <div className="text-sm text-gray-500 flex gap-3">
                         <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-md text-xs font-medium">
-                        {video.duration} menit
+                            {video.duration < 60
+                                ? `${video.duration} detik`
+                                : video.duration < 3600
+                                ? `${Math.floor(video.duration / 60)} menit`
+                                : `${Math.floor(video.duration / 3600)} jam ${Math.floor((video.duration % 3600) / 60)} menit`}
                         </span>
                         <span>{video.timeAgo}</span>
                     </div>
@@ -239,7 +243,7 @@ export default function VideoFavoritLibrary() {
                         </h2>
                         <div className="ml-auto">
                             <button
-                                className={`p-1 rounded-full transition ${video.isFavorite ? 'bg-yellow-200 text-yellow-500' : 'hover:bg-yellow-100 text-gray-400'}`}
+                                className={`p-1 rounded-full transition ${video.isFavorite ? 'text-yellow-500' : 'hover:bg-yellow-100 text-gray-400'}`}
                                 title="Add to Favorites"
                                 onClick={() => {
                                     const host: string = import.meta.env.VITE_SERVER_URL;

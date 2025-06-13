@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { validateToken } from '../utils/ValidateToken';
 import { validateMembership } from '../utils/ValidateMembership';
 import VideoFavoritLibrary from './subPages/VideoListForProfile';
+import TransactionHistoryList from './subPages/TransactionList';
 
 interface VideoList {
   id: number;
@@ -24,9 +25,37 @@ interface VideoList {
   isFavorite: boolean;
 }
 
+
+interface paymanetDTO{
+  id: number;
+  date: string;
+  packageName: string;
+  amount: string;
+  method: string;
+}
+
+
+const mockData = [
+  {
+    id: 1,
+    date: '15 Mar 2025 Pukul 11:30 Wib',
+    packageName: 'Paket 1 Tahun',
+    amount: 'Rp500.000',
+    method: 'Transfer',
+  },
+  {
+    id: 2,
+    date: '15 Mar 2024 Pukul 11:30 Wib',
+    packageName: 'Paket 1 Tahun',
+    amount: 'Rp500.000',
+    method: 'Transfer',
+  },
+];
+
 type Tab = 'account' | 'favorites' | 'transactions';
 
 export default function AccountSettingsPage() {
+  const [paymentData, setPaymentData] = useState<paymanetDTO[]>([]);
   const [userName, setUserName] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
   const [userPhone, setUserPhone] = useState<string>('');
@@ -38,9 +67,14 @@ export default function AccountSettingsPage() {
   const [favorites, setFavorites] = useState<VideoList[]>([]);
   const navigate = useNavigate();
 
+  const checkMembership = () => {
+    const isMember = validateMembership();
+    if(!isMember) navigate('/payment');
+  }
+
   useEffect(() => {
-    const checkToken = async () => {
-        const isValid = await validateToken();
+    const checkToken = () => {
+        const isValid = validateToken();
         if (!isValid) {
             navigate('/login');
         }
@@ -88,6 +122,21 @@ export default function AccountSettingsPage() {
     }
   };
 
+  const fetchTransactionHistory = async () => {
+    if (!userId) return;
+    const host = import.meta.env.VITE_SERVER_URL;
+    try {
+      const res = await axios.get(`${host}/history/${userId}`);
+      setPaymentData(res.data.paymentHistory || []);
+    } catch (err: any) {
+      setAlert({ show: true, type: 'error', message: err.response?.data?.message || 'Gagal mengambil riwayat transaksi.' });
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactionHistory();
+  }, [userId]);
+
   return (
     <>
       <MiniNavbar />
@@ -116,6 +165,7 @@ export default function AccountSettingsPage() {
           <button
             className={`pb-2 ${activeTab === 'favorites' ? 'border-b-2 border-orange-500' : ''}`}
             onClick={() => {
+              checkMembership();
               setActiveTab('favorites');
               fetchFavorites();
             }}
@@ -143,7 +193,7 @@ export default function AccountSettingsPage() {
 
       {/* Content Area */}
       {activeTab === 'account' && (
-        <div className="mt-6 mx-auto max-w-4xl bg-white p-6 shadow">
+        <div className="mt-6 mx-auto max-w-4xl bg-white p-6 shadow" style={{ height: '655px', overflowY: 'auto' }}>
           <h2 className="text-xl font-semibold mb-4">Pengaturan Akun</h2>
           <div className="flex gap-6">
             <img
@@ -226,13 +276,16 @@ export default function AccountSettingsPage() {
       )}
 
       {activeTab === 'favorites' && (
-        <VideoFavoritLibrary></VideoFavoritLibrary>
+        <div className="mt-6 mx-auto max-w-4xl bg-white p-6 shadow" style={{ maxHeight: '655px', overflowY: 'auto' }}>
+          <VideoFavoritLibrary></VideoFavoritLibrary>
+        </div>
+        
       )}
 
       {activeTab === 'transactions' && (
-        <div className="mt-6 mx-auto max-w-4xl bg-white p-6 shadow">
-          <h2 className="text-xl font-semibold mb-4">Riwayat Transaksi</h2>
-          <p className="text-gray-500">Fitur ini belum tersedia.</p>
+
+        <div className="mt-6 mx-auto max-w-4xl bg-white p-6 shadow" style={{ height: '655px', overflowY: 'auto' }}>
+          <TransactionHistoryList transactions={paymentData}></TransactionHistoryList>
         </div>
       )}
 

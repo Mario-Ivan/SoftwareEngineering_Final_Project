@@ -92,7 +92,7 @@ export const verifyPaymentById: RequestHandler = async(req, res, next) => {
 
 export const getUserPaymentHistory: RequestHandler = async(req,res,next) => {
     try {
-        const { userId } = req.body;
+        const { userId } = req.params;
 
         if (!userId) {
             res.status(400).json({ error: 'User ID is required' });
@@ -104,6 +104,36 @@ export const getUserPaymentHistory: RequestHandler = async(req,res,next) => {
                 userId: parseInt(userId),
             },
         });
+
+        const formattedHistory = paymentHistory.map(payment => {
+            let packageName = '';
+            if (payment.duration >= 12) {
+            const years = Math.floor(payment.duration / 12);
+            const months = payment.duration % 12;
+            packageName = `Paket ${years} Tahun${months > 0 ? ` ${months} Bulan` : ''}`;
+            } else {
+            packageName = `Paket ${payment.duration} Bulan`;
+            }
+
+            return {
+                id: payment.id,
+                date: payment.paymentDate
+                    ? (() => {
+                        const dateObj = new Date(payment.paymentDate);
+                        const day = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                        const hours = dateObj.getHours().toString().padStart(2, '0');
+                        const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                        return `${day} Pukul ${hours}:${minutes} WIB`;
+                    })()
+                    : '',
+                packageName,
+                amount: `Rp${payment.amount.toLocaleString('id-ID')}`,
+                method: payment.paymentMethod,
+            };
+        });
+
+        res.status(200).json({ message: 'Payment history retrieved successfully', paymentHistory: formattedHistory });
+        return;
 
         res.status(200).json({ message: 'Payment history retrieved successfully', paymentHistory });
     } catch (error) {

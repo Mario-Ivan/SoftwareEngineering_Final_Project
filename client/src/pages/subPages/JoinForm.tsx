@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { validateToken } from "../../utils/ValidateToken";
 import { validateMembership } from "../../utils/ValidateMembership";
 import { useNavigate } from "react-router-dom";
+import AlertPopup from "../../components/AlertPopup";
 import axios from "axios";
 
 const paymentOptions = [
@@ -16,6 +17,8 @@ export default function JoinForm() {
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [userId, setUserId] = useState<number>(0);
     const [duration, setDuration] = useState<number>(6);
+    const [alert, setAlert] = useState<{ show: boolean; type?: 'success' | 'error'; message: string }>({ show: false, type: 'success', message: '' });
+    const [isHovered, setIsHovered] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -141,12 +144,10 @@ export default function JoinForm() {
                                 },
                             }
                         );
-                        if (res.status === 200) {
-                            alert("Pendaftaran berhasil! Silakan cek email Anda.");
-                            // Optionally redirect or reset form
-                            // navigate('/somewhere');
+                        if (res.status === 201) {
+                            setAlert({ show: true, type: 'success', message: 'Payment Successfull, wait on to be verified!' });
                         } else {
-                            alert(res.data.message || "Terjadi kesalahan saat mendaftar.");
+                            setAlert({ show: true, type: 'error', message: 'Submit Payment Error, wait on for several minutes!' });
                         }
                     } catch (error: any) {
                         alert(
@@ -159,6 +160,16 @@ export default function JoinForm() {
                 Bayar Sekarang
             </button>
         </form>
+        {alert.show && (
+            <AlertPopup
+                type={alert.type || 'success'}
+                message={alert.message}
+                onClose={() => setAlert({ ...alert, show: false })}
+                duration={3000}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            />
+        )}
         </div>
     );
 }

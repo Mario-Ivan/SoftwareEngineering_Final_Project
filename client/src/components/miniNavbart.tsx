@@ -30,12 +30,6 @@ const MiniNavbar: React.FC = () => {
             >
                 Skill
             </button>
-            <button
-                className="hover:text-orange-400 transition"
-                onClick={() => navigate("/transactions")}
-            >
-                Transaction History
-            </button>
         </nav>
     );
 };

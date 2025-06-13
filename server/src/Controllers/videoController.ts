@@ -115,7 +115,6 @@ export const uploadVideo: RequestHandler[] = [
             });
         });
 
-        const durationMinutes = durationSeconds / 60;
 
         const videoId = file.key.split('/').pop()!.split('.')[0];
         const thumbnailKey = await generateRandomThumbnailAndUpload(
@@ -134,7 +133,7 @@ export const uploadVideo: RequestHandler[] = [
                 filePath: file.location,
                 fileKey: file.key,
                 uploadTime: new Date(),
-                fileDuration: durationMinutes,
+                fileDuration: durationSeconds,
                 thumbnail: thumbnailKey,
             },
         });

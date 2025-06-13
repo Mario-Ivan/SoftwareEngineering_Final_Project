@@ -20,15 +20,6 @@ const Navbar: React.FC<NavbarProps & { route: string }> = ({ message, buttonMess
     const navigate = useNavigate();
     useEffect(() => {
         // Replace with real authentication/profile fetching logic
-        const checkToken = async () => {
-            const isValid = await validateToken();
-            if (!isValid) {
-                localStorage.removeItem("jwt_auth");
-                localStorage.removeItem("refreshToken");
-                navigate('/login');
-            }
-        };
-        checkToken();
         const token = localStorage.getItem("jwt_auth");
         let user: any = null;
         if (token) {
